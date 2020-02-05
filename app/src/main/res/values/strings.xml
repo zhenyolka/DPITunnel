@@ -10,14 +10,14 @@
     <string name="split_title">Split requests</string>
     <string name="split_position_title">Split position</string>
     <string name="split_position_summary">Click to set request split position</string>
-    <string name="socks5_title">Use socks5 proxy</string>
-    <string name="socks5_summary">If this option is enabled, requests to the server go through a sock5 proxy</string>
+    <string name="socks5_title">Use SOCKS5 proxy</string>
+    <string name="socks5_summary">If this option is enabled, requests to the server go through a SOCKS5 proxy</string>
     <string name="http_header_title">Change HOST header</string>
     <string name="http_header_summary">If this option is enabled, the HOST header changes to the specified</string>
     <string name="http_header_spell_title">HOST header spell</string>
     <string name="http_dot_title">Add dot after host name</string>
-    <string name="http_dot_summary">If this option is enabled, a dot is added after the server name.</string>
-    <string name="http_tab_summary">If this option is enabled, a tab is added after the server name.</string>
+    <string name="http_dot_summary">If this option is enabled, a dot is added after the server name</string>
+    <string name="http_tab_summary">If this option is enabled, a tab is added after the server name</string>
     <string name="http_tab_title">Add tab after host name</string>
     <string name="http_space_host_title">Remove space after HOST header</string>
     <string name="http_space_host_summary">If this option is enabled, the space after the HOST header is removed</string>
@@ -37,11 +37,11 @@
     <string name="other_hostlist_summary">If this option is enabled, DPI bypass methods are applied only to sites from the list (the list is located in the program folder and is updated with a button on the main screen)</string>
     <string name="other_socks5_title">SOCKS5 proxy address</string>
     <string name="other_bind_port_title">DPITunnel port</string>
-    <string name="other_bind_port_summary">Specifies the port on which the local http proxy DPITunnel server is running</string>
+    <string name="other_bind_port_summary">Specifies the port on which the local HTTP proxy DPITunnel server is running</string>
     <string name="other_proxy_setting_title">Set DPITunnel proxy globally</string>
-    <string name="other_proxy_setting_summary">Set DPITunnel proxy global automatically on start (require root)</string>
+    <string name="other_proxy_setting_summary">Set DPITunnel proxy global automatically on start (requires root)</string>
     <string name="update_hostlist">Update hostlist</string>
     <string name="update_hostlist_ok">Hostlist updated successfully</string>
-    <string name="update_hostlist_bad">There is error while updating hostlist</string>
+    <string name="update_hostlist_bad">There was an error while updating hostlist</string>
     <string name="please_run_service">DPI Tunnel service isn\'t running. Please, run it</string>
 </resources>

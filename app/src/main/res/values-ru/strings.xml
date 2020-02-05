@@ -10,7 +10,7 @@
     <string name="split_position_title">Позиция разделения запросов</string>
     <string name="split_position_summary">Нажмите, чтобы установить позицию разделения запросов</string>
     <string name="socks5_title">Использовать прокси-сервер</string>
-    <string name="socks5_summary">Если эта опция включена, запросы к серверу проходят через socks5 прокси</string>
+    <string name="socks5_summary">Если эта опция включена, запросы к серверу проходят через SOCKS5 прокси</string>
     <string name="http_header_title">Изменять HOST заголовок</string>
     <string name="http_header_summary">Если эта опция включена, HOST заголовок изменяется на заданный</string>
     <string name="http_header_spell_title">Написание HOST заголовка</string>
@@ -36,7 +36,7 @@
     <string name="other_hostlist_summary">Если эта опция включена, методы обхода DPI применяются только для сайтов из списка (список находится в папке программы и обновляется кнопкой на главном экране)</string>
     <string name="other_socks5_title">Адрес SOCKS5 прокси сервера</string>
     <string name="other_bind_port_title">Порт DPITunnel</string>
-    <string name="other_bind_port_summary">Задает порт на котором работает локальный http прокси сервер DPITunnel</string>
+    <string name="other_bind_port_summary">Задает порт на котором работает локальный HTTP прокси сервер DPITunnel</string>
     <string name="other_proxy_setting_title">"Установить DPITunnel прокси глобально "</string>
     <string name="other_proxy_setting_summary">Устанавливает DPITunnel прокси глобально автоматически на старте (требует root)</string>
     <string name="update_hostlist">Обновить hostlist</string>
