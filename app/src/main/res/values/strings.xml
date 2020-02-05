@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">DPI Tunnel</string>
-    <string name="app_ascii_logo_lock">\u00A0\u00A0\u00A0\u00A0____\n\u00A0\u00A0\u00A0//\"\"\\\\\n\u00A0\u00A0||\u00A0\u00A0\u00A0\u00A0||\n\u00A0\u00A0||____||\n\u00A0//******\\\\\n||***/\\***||\n||***\\/***||\n\u00A0\\\\******//\n\u00A0\u00A0\u00A0\"\"\"\"\"\"</string>
-    <string name="app_ascii_logo_unlock">\u00A0\u00A0\u00A0\u00A0____\n\u00A0\u00A0\u00A0//\"\"\\\\\n\u00A0\u00A0||\u00A0\u00A0\u00A0\u00A0||\n\u00A0\u00A0\u00A0_____||\n\u00A0//******\\\\\n||***/\\***||\n||***\\/***||\n\u00A0\\\\******//\n\u00A0\u00A0\u00A0\"\"\"\"\"\"</string>
+    <string name="app_name" translatable="false">DPI Tunnel</string>
+    <string name="app_ascii_logo_lock" translatable="false">\u00A0\u00A0\u00A0\u00A0____\n\u00A0\u00A0\u00A0//\"\"\\\\\n\u00A0\u00A0||\u00A0\u00A0\u00A0\u00A0||\n\u00A0\u00A0||____||\n\u00A0//******\\\\\n||***/\\***||\n||***\\/***||\n\u00A0\\\\******//\n\u00A0\u00A0\u00A0\"\"\"\"\"\"</string>
+    <string name="app_ascii_logo_unlock" translatable="false">\u00A0\u00A0\u00A0\u00A0____\n\u00A0\u00A0\u00A0//\"\"\\\\\n\u00A0\u00A0||\u00A0\u00A0\u00A0\u00A0||\n\u00A0\u00A0\u00A0_____||\n\u00A0//******\\\\\n||***/\\***||\n||***\\/***||\n\u00A0\\\\******//\n\u00A0\u00A0\u00A0\"\"\"\"\"\"</string>
     <string name="on">ON</string>
     <string name="off">OFF</string>
     <string name="port">Port:</string>
