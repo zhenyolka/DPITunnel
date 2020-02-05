@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name" translatable="false">DPI Tunnel</string>
+    <string name="app_ascii_logo_lock" translatable="false">\u00A0\u00A0\u00A0\u00A0____\n\u00A0\u00A0\u00A0//\"\"\\\\\n\u00A0\u00A0||\u00A0\u00A0\u00A0\u00A0||\n\u00A0\u00A0||____||\n\u00A0//******\\\\\n||***/\\***||\n||***\\/***||\n\u00A0\\\\******//\n\u00A0\u00A0\u00A0\"\"\"\"\"\"</string>
+    <string name="app_ascii_logo_unlock" translatable="false">\u00A0\u00A0\u00A0\u00A0____\n\u00A0\u00A0\u00A0//\"\"\\\\\n\u00A0\u00A0||\u00A0\u00A0\u00A0\u00A0||\n\u00A0\u00A0\u00A0_____||\n\u00A0//******\\\\\n||***/\\***||\n||***\\/***||\n\u00A0\\\\******//\n\u00A0\u00A0\u00A0\"\"\"\"\"\"</string>
+    <string name="on">WYŁĄCZONE</string>
+    <string name="off">WŁĄCZONE</string>
+    <string name="port">Port:</string>
+    <string name="other">Inne</string>
+    <string name="split_summary">Gdy ta opcja jest włączona, żądania są dzielone na części</string>
+    <string name="split_title">Dzielenie żądań</string>
+    <string name="split_position_title">Pozycja podziału</string>
+    <string name="split_position_summary">Naciśnij, by ustawić pozycję podziału</string>
+    <string name="socks5_title">Używaj proxy SOCKS5</string>
+    <string name="socks5_summary">Gdy ta opcja jest włączona, żądania przechodzą przez proxy SOCKS5</string>
+    <string name="http_header_title">Zmiana nagłówka HOST</string>
+    <string name="http_header_summary">Gdy ta opcja jest włączona, nagłówek HOST jest zmieniany na podany przez użytkownika</string>
+    <string name="http_header_spell_title">Pisownia nagłówka HOST</string>
+    <string name="http_dot_title">Dodawaj kropkę po nazwie hosta</string>
+    <string name="http_dot_summary">Gdy ta opcja jest włączona, po nazwie hosta dodawana jest kropka</string>
+    <string name="http_tab_summary">Gdy ta opcja jest włączona, po nazwie hosta dodawany jest tabulator</string>
+    <string name="http_tab_title">Dodawaj tabulator po nazwie hosta</string>
+    <string name="http_space_host_title">Usuwaj spację po nagłówku HOST</string>
+    <string name="http_space_host_summary">Gdy ta opcja jest włączona, spacja po nagłówku HOST jest usuwana</string>
+    <string name="http_space_method_title">Dodawaj spację po metodzie</string>
+    <string name="http_space_method_summary">Gdy ta opcja jest włączone, po metodzie dodawana jest spacja</string>
+    <string name="http_newline_method_title">Dodawaj znak nowej linii (enter) przed metodą</string>
+    <string name="http_newline_method_summary">Gdy ta opcja jest włączona, przed metodą stawiany jest znak nowej linii (enter)</string>
+    <string name="http_unix_newline_title">Używaj znaków nowej linii w stylu UNIX</string>
+    <string name="http_unix_newline_summary">Gdy ta opcja jest włączona, znak nowej linii jest używany w stylu UNIX</string>
+    <string name="doh_title">Używaj protokołu DoH</string>
+    <string name="doh_summary">Ta opcja włącza wsparcie dla protokołu DoH dla zapytań DNS</string>
+    <string name="dns_doh_hostlist_title">Używaj protokołu DoH tylko dla stron w liście hostów</string>
+    <string name="dns_doh_hostlist_summary">Gdy ta opcja jest włączona, protokół DoH jest używany tylko dla stron w liście hostów (ta opcja wymaga włączenia opcji DoH i protokołu hostów)</string>
+    <string name="dns_doh_server_title">Adres serwera DNS</string>
+    <string name="dns_doh_server_summary">Serwer DNS jest używany tylko dla żądań DoH. Wspierane są tylko serwery DoH używające JSON</string>
+    <string name="other_hostlist_title">Używaj listy hostów</string>
+    <string name="other_hostlist_summary">Gdy ta opcja jest włączona, metody obchodzenia DPI są używane tylko dla stron w liście hostów (lista zlokalizowana jest w folderze programu i jest aktualizowana przyciskiem na ekranie głównym)</string>
+    <string name="other_socks5_title">Adres proxy SOCKS5</string>
+    <string name="other_bind_port_title">Port DPITunnel</string>
+    <string name="other_bind_port_summary">Wskazuje port, na którym lokalny serwer proxy HTTP DPITunnel ma działać</string>
+    <string name="other_proxy_setting_title">Aplikuj proxy DPITunnel globalnie</string>
+    <string name="other_proxy_setting_summary">Aplikuj proxy DPITunnel globalnie automatycznie przy uruchomieniu systemu (wymaga uprawnień root)</string>
+    <string name="update_hostlist">Aktualizuj listę hostów</string>
+    <string name="update_hostlist_ok">Lista hostów zaktualizowana pomyślnie</string>
+    <string name="update_hostlist_bad">Wystąpił błąd podczas aktualizowania listy hostów</string>
+    <string name="please_run_service">Usługa DPITunnel nie jest włączona. Prosimy ją włączyć</string>
+</resources>
