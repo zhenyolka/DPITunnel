@@ -113,7 +113,8 @@ public class Tun2HttpVpnService extends VpnService {
 
     private void stop() {
         // Stop DNS server
-        localDNSServer.quit();
+        if(localDNSServer != null)
+            localDNSServer.quit();
 
         // Stop service
         if (vpn != null) {

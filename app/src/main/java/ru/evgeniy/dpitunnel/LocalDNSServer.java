@@ -196,7 +196,8 @@ public class LocalDNSServer extends Thread {
                 e.printStackTrace();
             }
         }
-        serverSocket.close();
+        if (serverSocket != null)
+            serverSocket.close();
     }
 
     public void quit() {
