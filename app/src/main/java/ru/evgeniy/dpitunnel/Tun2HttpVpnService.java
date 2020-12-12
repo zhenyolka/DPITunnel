@@ -162,7 +162,7 @@ public class Tun2HttpVpnService extends VpnService {
         //builder.addRoute("0:0:0:0:0:0:0:0", 0);
 
         // Set DNS server
-        builder.addDnsServer("8.8.8.8");
+        builder.addDnsServer("192.0.0.0");
 
         // MTU
         int mtu = jni_get_mtu();

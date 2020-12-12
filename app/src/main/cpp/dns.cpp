@@ -5,6 +5,7 @@
 extern struct Settings settings;
 extern JavaVM* javaVm;
 extern jclass utils_class;
+extern jclass localdnsserver_class;
 
 int resolve_host_over_doh(std::string host, std::string & ip)
 {
@@ -115,4 +116,46 @@ int resolve_host(std::string host, std::string & ip)
     {
         return resolve_host_over_dns(host, ip);
     }
+}
+
+int reverse_resolve_host(std::string & host)
+{
+    std::string log_tag = "CPP/reverse_resolve_host";
+
+    // Check if host is IP
+    struct sockaddr_in sa;
+    int result = inet_pton(AF_INET, host.c_str(), &sa.sin_addr);
+    if(settings.other.is_use_vpn && result != 0)
+    {
+        // Get JNIEnv
+        JNIEnv* jni_env;
+        javaVm->GetEnv((void**) &jni_env, JNI_VERSION_1_6);
+
+        // Attach JNIEnv
+        javaVm->AttachCurrentThread(&jni_env, NULL);
+
+        // Find Java method
+        jmethodID localdnsserver_get_hostname = jni_env->GetStaticMethodID(localdnsserver_class, "getHostname", "(Ljava/lang/String;)Ljava/lang/String;");
+        if(localdnsserver_get_hostname == NULL)
+        {
+            log_error(log_tag.c_str(), "Failed to find getHostname method");
+            return -1;
+        }
+
+        // Call Java method
+        jstring response_string_object = (jstring) jni_env->CallStaticObjectMethod(localdnsserver_class, localdnsserver_get_hostname, jni_env->NewStringUTF(host.c_str()));
+        host = jni_env->GetStringUTFChars(response_string_object, 0);
+        if(host.empty())
+        {
+            log_error(log_tag.c_str(), "Failed to find hostname to ip");
+            return -1;
+        }
+
+        // Detach thread
+        javaVm->DetachCurrentThread();
+
+        return 0;
+    }
+    else
+        return 0;
 }

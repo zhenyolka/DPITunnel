@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -122,7 +123,7 @@ public class NativeService extends Service {
 
         @Override
         public void run() {
-            if(init(PreferenceManager.getDefaultSharedPreferences(NativeService.this)) == -1)
+            if(init(PreferenceManager.getDefaultSharedPreferences(NativeService.this), getFilesDir().toString()) == -1)
             {
                 Log.e(log_tag, "Init failure");
                 NativeService.this.stopSelf();
@@ -186,7 +187,7 @@ public class NativeService extends Service {
         System.loadLibrary("dpi-bypass");
     }
 
-    public native int init(SharedPreferences prefs);
+    public native int init(SharedPreferences prefs, String appData);
     public native void acceptClientCycle();
     public native void deInit();
 }

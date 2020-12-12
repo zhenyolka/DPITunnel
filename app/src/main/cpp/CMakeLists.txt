@@ -10,6 +10,8 @@ cmake_minimum_required(VERSION 3.4.1)
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DTLS_AMALGAMATION")
+
 add_library( # Sets the name of the library.
         dpi-bypass
 
@@ -19,9 +21,12 @@ add_library( # Sets the name of the library.
         # Provides a relative path to your source file(s).
         dns.cpp
         dpi-bypass.cpp
+        fileIO.cpp
         hostlist.cpp
         packet.cpp
-        socket.cpp)
+        socket.cpp
+        sni.cpp
+        sni_cert_gen.cpp)
 
 add_library( # Sets the name of the library.
         tun2http
@@ -43,6 +48,17 @@ add_library( # Sets the name of the library.
         tun2http/util.c
         )
 
+add_library( # Sets the name of the library.
+        tlse
+
+        # Sets the library as a shared library.
+        SHARED
+
+        # Provides a relative path to your source file(s).
+        tlse/tlse.c
+        tlse/curve25519.c
+        )
+
 # Add log library
 find_library( # Sets the name of the path variable.
         log-lib
@@ -50,11 +66,12 @@ find_library( # Sets the name of the path variable.
         # Specifies the name of the NDK library that
         # you want CMake to locate.
         log)
-
-# Add include files paths
 include_directories(
         dpi-bypass
         "${PROJECT_SOURCE_DIR}/rapidjson/include"
+        "${PROJECT_SOURCE_DIR}/tlse"
+        "${PROJECT_SOURCE_DIR}/crypto"
+        "${PROJECT_SOURCE_DIR}/openssl/include"
 )
 include_directories(
         tun2http
@@ -66,7 +83,10 @@ target_link_libraries( # Specifies the target library.
 
         # Links the target library to the log library
         # included in the NDK.
-        ${log-lib})
+        ${log-lib}
+        tlse
+        "${PROJECT_SOURCE_DIR}/openssl/${ANDROID_ABI}/lib/libcrypto.a"
+        "${PROJECT_SOURCE_DIR}/openssl/${ANDROID_ABI}/lib/libssl.a")
 
 target_link_libraries( # Specifies the target library.
         tun2http

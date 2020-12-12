@@ -1,3 +1,6 @@
 [submodule "app/src/main/cpp/rapidjson"]
 	path = app/src/main/cpp/rapidjson
 	url = https://github.com/Tencent/rapidjson
+[submodule "app/src/main/cpp/tlse"]
+	path = app/src/main/cpp/tlse
+	url = https://github.com/eduardsui/tlse.git

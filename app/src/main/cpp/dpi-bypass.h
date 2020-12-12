@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 #include <thread>
 #include <string>
 #include <cstring>
@@ -19,6 +20,7 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
+#include <tlse.h>
 #include <jni.h>
 #include <android/log.h>
 
@@ -33,6 +35,7 @@ struct Settings
         unsigned int split_position;
         bool is_use_socks5;
         bool is_use_http_proxy;
+        bool is_use_sni_replace;
     } https;
 
     struct
@@ -72,6 +75,8 @@ struct Settings
         int bind_port;
         bool is_use_vpn;
     } other;
+
+    std::string app_files_dir;
 };
 
 #endif //DPITUNNEL_DPI_BYPASS_H

@@ -391,11 +391,7 @@ jboolean handle_udp(const struct arguments *args,
         }
 
         // Forward request to local DNS server
-        if(fork() == 0)
-        {
-            resolve_host_with_local_dns_server(args, cur, data, datalen);
-            exit(0);
-        }
+        resolve_host_with_local_dns_server(args, cur, data, datalen);
 
         return 1;
 

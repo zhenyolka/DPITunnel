@@ -30,7 +30,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class LocalDNSServer extends Thread {
 
-    private String log_tag = "Java/LocalDNSServer";
+    private final String log_tag = "Java/LocalDNSServer";
 
     private static Map<String, String> ipHostnameMap;
 
@@ -136,8 +136,7 @@ public class LocalDNSServer extends Thread {
                     // Remove www. if need
                     if(hostname.substring(0, 4).equals("www."))
                         hostname = hostname.substring(4);
-
-                    // Put to HashMap
+                    // Put to map
                     ipHostnameMap.put(ip, hostname);
                 }
             }

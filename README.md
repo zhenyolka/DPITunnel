@@ -56,3 +56,5 @@ Licensed under the MIT license. See [LICENSE](https://github.com/zhenyolka/DPITu
 * [TunProxy](https://github.com/raise-isayan/TunProxy) - VPN server and traffic interceptor
 * [RapidJSON](https://github.com/Tencent/rapidjson) - JSON library. MIT
 * [android-vpnservice](https://github.com/mightofcode/android-vpnservice/blob/master/LICENSE) - android VPNService example. Apache License 2.0
+* [tlse](https://github.com/eduardsui/tlse) - TLS library. Used in this project to de/encrypt TLS traffic. BSD-2-Clause License
+* [OpenSSL](https://github.com/openssl/openssl) - SSL/TLS toolkit. Used in this project to generate SSL certificates on the fly. Apache License 2.0

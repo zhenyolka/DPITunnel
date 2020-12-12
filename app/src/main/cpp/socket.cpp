@@ -7,7 +7,6 @@ extern struct Settings settings;
 
 int recv_string(int socket, std::string & message)
 {
-    std::string buffer(1024, ' ');
     ssize_t read_size;
     size_t message_offset = 0;
 
@@ -23,7 +22,12 @@ int recv_string(int socket, std::string & message)
 
     while(true)
     {
-        read_size = recv(socket, &buffer[0], buffer.size(), 0);
+        if(message.size() - message_offset < 1024) // If there isn't any space in message string - just increase it
+        {
+            message.resize(message.size() + 1024);
+        }
+
+        read_size = recv(socket, &message[0] + message_offset, message.size() - message_offset, 0);
         if(read_size < 0)
         {
             if(errno == EWOULDBLOCK)	break;
@@ -36,12 +40,6 @@ int recv_string(int socket, std::string & message)
         }
         else if(read_size == 0)	return -1;
 
-        if(message_offset + read_size >= message.size()) // If there isn't any space in message string - just increase it
-        {
-            message.resize(message_offset + read_size + 1024);
-        }
-
-        message.insert(message.begin() + message_offset, buffer.begin(), buffer.begin() + read_size);
         message_offset += read_size;
     }
 
@@ -52,7 +50,6 @@ int recv_string(int socket, std::string & message)
 
 int recv_string(int socket, std::string & message, struct timeval timeout)
 {
-    std::string buffer(1024, ' ');
     ssize_t read_size;
     size_t message_offset = 0;
 
@@ -64,7 +61,12 @@ int recv_string(int socket, std::string & message, struct timeval timeout)
 
     while(true)
     {
-        read_size = recv(socket, &buffer[0], buffer.size(), 0);
+        if(message.size() - message_offset < 1024) // If there isn't any space in message string - just increase it
+        {
+            message.resize(message.size() + 1024);
+        }
+
+        read_size = recv(socket, &message[0] + message_offset, message.size() - message_offset, 0);
         if(read_size < 0)
         {
             if(errno == EWOULDBLOCK)	break;
@@ -77,12 +79,6 @@ int recv_string(int socket, std::string & message, struct timeval timeout)
         }
         else if(read_size == 0)	return -1;
 
-        if(message_offset + read_size >= message.size()) // If there isn't any space in message string - just increase it
-        {
-            message.resize(message_offset + read_size + 1024);
-        }
-
-        message.insert(message.begin() + message_offset, buffer.begin(), buffer.begin() + read_size);
         message_offset += read_size;
     }
 

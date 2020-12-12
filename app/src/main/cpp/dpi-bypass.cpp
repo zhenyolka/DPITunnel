@@ -3,11 +3,12 @@
 #include "hostlist.h"
 #include "packet.h"
 #include "socket.h"
+#include "sni.h"
 
 Settings settings;
 JavaVM* javaVm;
 
-std::string CONNECTION_ESTABLISHED_RESPONSE("HTTP/1.1 200 Connection established\r\n\r\n");
+const std::string CONNECTION_ESTABLISHED_RESPONSE("HTTP/1.1 200 Connection established\r\n\r\n");
 //std::vector<pid_t> child_processes;
 std::vector<std::thread> threads;
 bool stop_flag;
@@ -25,61 +26,138 @@ void proxy_https(int client_socket, std::string host, int port)
 		return;
 	}
 
+	// In VPN mode when connecting to https sites proxy server gets CONNECT requests with ip addresses
+	// So if we receive ip address we need to find hostname for it
+	reverse_resolve_host(host);
+
 	// Search in host list one time to save cpu time
 	bool hostlist_condition = settings.hostlist.is_use_hostlist ? find_in_hostlist(host) : true;
 
 	// Split only first https packet, what contains unencrypted sni
 	bool is_clienthello_request = true;
 
-	while(!stop_flag)
+	// Init tlse if SNI replace enabled
+	struct TLSContext *server_server_context;
+	struct TLSContext *server_client_context;
+	struct TLSContext *client_context;
+	if(settings.https.is_use_sni_replace && hostlist_condition)
 	{
-		std::string request(1024, ' ');
-		std::string response(1024, ' ');
-
-		if(recv_string(client_socket, request) == -1) // Receive request from client
-		{
+		// Create server. It will decrypt client's traffic
+        server_server_context = init_tls_server_server();
+		server_client_context = init_tls_server_client(client_socket, server_server_context, host);
+		if(server_client_context == NULL){
 			close(remote_server_socket);
 			close(client_socket);
+			tls_destroy_context(server_client_context);
+			tls_destroy_context(server_server_context);
 			return;
 		}
+		// Create client. It will encrypt and send traffic with fake SNI
+		std::string fake_sni = "google.com";
+		client_context = init_tls_client(remote_server_socket, fake_sni);
+        if(client_context == NULL){
+            close(remote_server_socket);
+            close(client_socket);
+            tls_destroy_context(server_client_context);
+            tls_destroy_context(server_server_context);
+            return;
+        }
+	}
 
-		// Check if split is need
-		if(hostlist_condition && settings.https.is_use_split && is_clienthello_request)
-		{
-			if(send_string(remote_server_socket, request, settings.https.split_position) == -1) // Send request to server
-			{
-				close(remote_server_socket);
-				close(client_socket);
-				return;
-			}
+	std::string buffer(1024, ' ');
 
-			// VPN mode specific
-			// VPN mode requires splitting for all packets
-			is_clienthello_request = settings.other.is_use_vpn;
-		}
-		else
-		{
-			if(send_string(remote_server_socket, request) == -1) // Send request to server
-			{
-				close(remote_server_socket);
-				close(client_socket);
-				return;
-			}
-		}
+	if(settings.https.is_use_sni_replace && hostlist_condition) {
+		while(!stop_flag) {
+			if (recv_string_tls(client_socket, server_client_context, buffer, true) ==
+				-1) // Receive request from client
+            {
+                close(remote_server_socket);
+                close(client_socket);
+                tls_destroy_context(server_client_context);
+                tls_destroy_context(server_server_context);
+                return;
+            }
 
-		if(recv_string(remote_server_socket, response) == -1) // Receive response from server
-		{
-			close(remote_server_socket);
-			close(client_socket);
-			return;
-		}
+			if (send_string_tls(remote_server_socket, client_context, buffer) ==
+				-1) // Send request to server
+            {
+                close(remote_server_socket);
+                close(client_socket);
+                tls_destroy_context(server_client_context);
+                tls_destroy_context(server_server_context);
+                return;
+            }
 
-		if(send_string(client_socket, response) == -1) // Send response to client
-		{
-			close(remote_server_socket);
-			close(client_socket);
-			return;
+			if (recv_string_tls(remote_server_socket, client_context, buffer, false) ==
+				-1) // Receive response from server
+            {
+                close(remote_server_socket);
+                close(client_socket);
+                tls_destroy_context(server_client_context);
+                tls_destroy_context(server_server_context);
+                return;
+            }
+
+			if (send_string_tls(client_socket, server_client_context, buffer) ==
+				-1)  // Send response to client
+            {
+                close(remote_server_socket);
+                close(client_socket);
+                tls_destroy_context(server_client_context);
+                tls_destroy_context(server_server_context);
+                return;
+            }
 		}
+	}
+	else
+	{
+        while(!stop_flag)
+        {
+            if(recv_string(client_socket, buffer) == -1) // Receive request from client
+            {
+                close(remote_server_socket);
+                close(client_socket);
+                return;
+            }
+
+            // Check if split is need
+            if(hostlist_condition && settings.https.is_use_split && is_clienthello_request)
+            {
+                if(send_string(remote_server_socket, buffer, settings.https.split_position) == -1) // Send request to server
+                {
+                    close(remote_server_socket);
+                    close(client_socket);
+                    return;
+                }
+
+                // VPN mode specific
+                // VPN mode requires splitting for all packets
+                is_clienthello_request = settings.other.is_use_vpn;
+            }
+            else
+            {
+                if(send_string(remote_server_socket, buffer) == -1) // Send request to server
+                {
+                    close(remote_server_socket);
+                    close(client_socket);
+                    return;
+                }
+            }
+
+            if(recv_string(remote_server_socket, buffer) == -1) // Receive response from server
+            {
+                close(remote_server_socket);
+                close(client_socket);
+                return;
+            }
+
+            if(send_string(client_socket, buffer) == -1) // Send response to client
+            {
+                close(remote_server_socket);
+                close(client_socket);
+                return;
+            }
+        }
 	}
 }
 
@@ -135,7 +213,9 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 		return;
 	}
 
-	while(!stop_flag)
+	bool is_error = false;
+
+	while(!stop_flag && !is_error)
 	{
 		std::string request(1024, ' ');
 		std::string response(1024, ' ');
@@ -172,8 +252,7 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 
 		if(recv_string(remote_server_socket, response) == -1) // Receive response from server
 		{
-			close(remote_server_socket);
-			close(client_socket);
+			is_error = true;
 			return;
 		}
 
@@ -184,6 +263,9 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 			return;
 		}
 	}
+
+	close(remote_server_socket);
+	close(client_socket);
 }
 
 void process_client(int client_socket)
@@ -231,7 +313,7 @@ void process_client(int client_socket)
 	close(client_socket);
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(JNIEnv* env, jobject obj, jobject prefs_object)
+extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(JNIEnv* env, jobject obj, jobject prefs_object, jstring app_files_path)
 {
     std::string log_tag = "CPP/init";
 
@@ -288,6 +370,10 @@ extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(J
         return -1;
     }
 
+    // Test
+    settings.https.is_use_sni_replace = true;
+    // Test
+
     // Fill settings
     jstring string_object;
     settings.https.is_use_split = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("https_split"), false);
@@ -330,6 +416,8 @@ extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(J
     settings.other.bind_port = atoi(env->GetStringUTFChars(string_object, 0));
 
     settings.other.is_use_vpn = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("other_vpn_setting"), false);
+
+    settings.app_files_dir = env->GetStringUTFChars(app_files_path, 0);
 
 	// Parse hostlist if need
 	if(settings.hostlist.is_use_hostlist)
