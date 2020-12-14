@@ -76,7 +76,7 @@ int recv_string_tls(int socket, SSL *context, std::string & message)
             if(errno == EINTR)      continue; // All is good. This is just interrrupt.
             else
             {
-                log_error(log_tag.c_str(), "There is critical recv error. Can't process client. Read: %d, Errno: %s", read_size, std::strerror(errno));
+                log_error(log_tag.c_str(), "There is critical recv error. Can't process client. Errno: %s", std::strerror(errno));
                 return -1;
             }
         }
@@ -117,7 +117,7 @@ int send_string_tls(int socket, TLSContext *context, const std::string& string_t
             if(errno == EAGAIN) break;
             if(errno == EINTR)      continue; // All is good. This is just interrrupt.
             else {
-                log_error(log_tag.c_str(), "There is critical send error. Can't process client. Send: %d, Errno: %s", send_size, std::strerror(errno));
+                log_error(log_tag.c_str(), "There is critical send error. Can't process client. Errno: %s", std::strerror(errno));
                 return -1;
             }
         }

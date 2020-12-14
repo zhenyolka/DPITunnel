@@ -21,17 +21,18 @@ void proxy_https(int client_socket, std::string host, int port)
 {
 	int remote_server_socket;
 
-	if(init_remote_server_socket(remote_server_socket, host, port, true) == -1)
-	{
-		return;
-	}
-
 	// In VPN mode when connecting to https sites proxy server gets CONNECT requests with ip addresses
 	// So if we receive ip address we need to find hostname for it
 	reverse_resolve_host(host);
 
 	// Search in host list one time to save cpu time
 	bool hostlist_condition = settings.hostlist.is_use_hostlist ? find_in_hostlist(host) : true;
+
+	// Connect to remote server
+	if(init_remote_server_socket(remote_server_socket, host, port, true, hostlist_condition) == -1)
+	{
+		return;
+	}
 
 	// Split only first https packet, what contains unencrypted sni
 	bool is_clienthello_request = true;
@@ -187,22 +188,37 @@ void proxy_https(int client_socket, std::string host, int port)
             }
         }
 	}
+
+	if(settings.https.is_use_sni_replace && hostlist_condition)
+	{
+		SSL_shutdown(client_context);
+		close(remote_server_socket);
+		SSL_CTX_free(client_context);
+
+		SSL_shutdown(server_client_context);
+		shutdown(client_socket, SHUT_RDWR);
+		close(client_socket);
+		SSL_free(server_client_context);
+	}
+	else
+	{
+		close(remote_server_socket);
+		close(client_socket);
+	}
 }
 
 void proxy_http(int client_socket, std::string host, int port, std::string first_request)
 {
 	int remote_server_socket;
 
-	if(init_remote_server_socket(remote_server_socket, host, port, false) == -1)
+	// Search in host list one time to save cpu time
+	bool hostlist_condition = settings.hostlist.is_use_hostlist ? find_in_hostlist(host) : true;
+
+	// Connect to remote server
+	if(init_remote_server_socket(remote_server_socket, host, port, false, hostlist_condition) == -1)
 	{
 		return;
 	}
-
-	// Process first request
-	std::string first_response(1024, ' ');
-
-	// Search in host list one time to save cpu time
-	bool hostlist_condition = settings.hostlist.is_use_hostlist ? find_in_hostlist(host) : true;
 
 	// Modify http request to bypass dpi
 	modify_http_request(first_request, hostlist_condition);
@@ -227,28 +243,25 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 		}
 	}
 
-	if(recv_string(remote_server_socket, first_response) == -1) // Receive response from server
+	if(recv_string(remote_server_socket, first_request) == -1) // Receive response from server
 	{
 		close(remote_server_socket);
 		close(client_socket);
 		return;
 	}
 
-	if(send_string(client_socket, first_response) == -1) // Send response to client
+	if(send_string(client_socket, first_request) == -1) // Send response to client
 	{
 		close(remote_server_socket);
 		close(client_socket);
 		return;
 	}
 
-	bool is_error = false;
+	std::string buffer(1024, ' ');
 
-	while(!stop_flag && !is_error)
+	while(!stop_flag)
 	{
-		std::string request(1024, ' ');
-		std::string response(1024, ' ');
-
-		if(recv_string(client_socket, request) == -1) // Receive request from client
+		if(recv_string(client_socket, buffer) == -1) // Receive request from client
 		{
 			close(remote_server_socket);
 			close(client_socket);
@@ -256,12 +269,12 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 		}
 
 		// Modify http request to bypass dpi
-		modify_http_request(request, hostlist_condition);
+		modify_http_request(buffer, hostlist_condition);
 
 		// Check if split is need
 		if(hostlist_condition && settings.http.is_use_split)
 		{
-			if(send_string(remote_server_socket, request, settings.http.split_position) == -1) // Send request to serv$
+			if(send_string(remote_server_socket, buffer, settings.http.split_position) == -1) // Send request to serv$
 			{
 				close(remote_server_socket);
 				close(client_socket);
@@ -270,7 +283,7 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 		}
 		else
 		{
-			if(send_string(remote_server_socket, request) == -1) // Send request to server
+			if(send_string(remote_server_socket, buffer) == -1) // Send request to server
 			{
 				close(remote_server_socket);
 				close(client_socket);
@@ -278,13 +291,14 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 			}
 		}
 
-		if(recv_string(remote_server_socket, response) == -1) // Receive response from server
+		if(recv_string(remote_server_socket, buffer) == -1) // Receive response from server
 		{
-			is_error = true;
+			close(remote_server_socket);
+			close(client_socket);
 			return;
 		}
 
-		if(send_string(client_socket, response) == -1) // Send response to client
+		if(send_string(client_socket, buffer) == -1) // Send response to client
 		{
 			close(remote_server_socket);
 			close(client_socket);

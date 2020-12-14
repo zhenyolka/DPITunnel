@@ -176,7 +176,7 @@ int send_string(int socket, std::string string_to_send, unsigned int split_posit
     return 0;
 }
 
-int init_remote_server_socket(int & remote_server_socket, std::string remote_server_host, int remote_server_port, bool is_https)
+int init_remote_server_socket(int & remote_server_socket, std::string & remote_server_host, int remote_server_port, bool is_https, bool hostlist_condition)
 {
     std::string log_tag = "CPP/init_remote_server_socket";
 
@@ -195,9 +195,6 @@ int init_remote_server_socket(int & remote_server_socket, std::string remote_ser
         log_error(log_tag.c_str(), "Can't create remote server socket");
         return -1;
     }
-
-    // Search in host list one time to save cpu time
-    bool hostlist_condition = settings.hostlist.is_use_hostlist ? find_in_hostlist(remote_server_host) : true;
 
     // Check if socks5 is need
     if(hostlist_condition && ((settings.https.is_use_socks5 && is_https) || (settings.http.is_use_socks5 && !is_https)))
