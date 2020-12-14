@@ -8,126 +8,6 @@ extern struct Settings settings;
 
 std::string root_cert_store;
 
-/*int recv_string_tls(SSL* client, int client_socket, std::string & message)
-{
-    std::string log_tag = "CPP/recv_string_tls";
-
-    std::string buffer(1024, ' ');
-    ssize_t read_size = 0;
-    size_t message_offset = 0;
-
-    bool is_received = false;
-
-    while(true)
-    {
-        read_size = SSL_read(client, &buffer[0], buffer.size());
-        if(is_received && read_size <= 0)
-            break;
-        if(read_size < 0)
-        {
-            if(read_size == TLS_GENERIC_ERROR)
-            {
-                int err = 0;
-                socklen_t size = sizeof (err);
-                int check = getsockopt (client_socket, SOL_SOCKET, SO_ERROR, &err, &size);
-                if (check != 0)
-                {
-                    log_error(log_tag.c_str(), "There is critical tls read error. Can't process client");
-                    return -1;
-                }
-                break;
-            } else
-                continue;
-        }
-
-        if(message_offset + read_size >= message.size()) // If there isn't any space in message string - just increase it
-        {
-            message.resize(message_offset + read_size + 1024);
-        }
-
-        message.insert(message.begin() + message_offset, buffer.begin(), buffer.begin() + read_size);
-        message_offset += read_size;
-
-        is_received = true;
-    }
-
-    message.resize(message_offset);
-
-    return 0;
-}
-
-int send_string_tls(SSL* client, std::string &string_to_send)
-{
-    std::string log_tag = "CPP/send_string_tls";
-
-    if(string_to_send.empty())
-        return 0;
-
-    size_t offset = 0;
-
-    while(string_to_send.size() - offset != 0)
-    {
-        ssize_t send_size = SSL_write(client, string_to_send.c_str() + offset, string_to_send.size() - offset);
-        if(send_size < 0)
-        {
-            log_error(log_tag.c_str(), "There is critical tls send error. Can't process client");
-            return -1;
-        }
-        offset += send_size;
-    }
-
-    return 0;
-}
-
-SSL* init_tls_server(std::string &sni)
-{
-    GeneratedCA certificate;
-    generate_ssl_cert(sni, certificate);
-
-    SSL *tls_serv_ctx;
-    std::string log_tag = "CPP/init_tls_server";
-    tls_serv_ctx = SSL_CTX_new(SSLv3_server_method());
-    if (!tls_serv_ctx) {
-        log_error(log_tag.c_str(), "Error creating server context");
-        return NULL;
-    }
-    tls_load_certificates(tls_serv_ctx,
-                          reinterpret_cast<const unsigned char *>(certificate.public_key_pem.c_str()),
-                          certificate.public_key_pem.size());
-    tls_load_private_key(tls_serv_ctx,
-            reinterpret_cast<const unsigned char *>(certificate.private_key_pem.c_str()),
-            certificate.private_key_pem.size());
-
-    if (!SSL_CTX_check_private_key(tls_serv_ctx)) {
-        log_error(log_tag.c_str(), "Private key not loaded");
-        return NULL;
-    }
-    return tls_serv_ctx;
-}
-
-SSL* accept_tls_client(int client_socket, SSL* tls_serv_ctx)
-{
-    std::string log_tag = "CPP/accept_tls_client";
-    SSL *client = SSL_new(tls_serv_ctx);
-    if (!client) {
-        log_error(log_tag.c_str(), "Error creating SSL client");
-        return NULL;
-    }
-    SSL_set_fd(client, client_socket);
-    if (!SSL_accept(client)){
-        log_error(log_tag.c_str(), "Error in handshake");
-        SSL_shutdown(client);
-        SSL_free(client);
-        return NULL;
-    }
-    return client;
-}
-
-int deinit_tls_server(SSL* tls_serv_ctx)
-{
-    SSL_CTX_free(tls_serv_ctx);
-    return 0;
-}*/
 int verify_signature(struct TLSContext *context, struct TLSCertificate **certificate_chain, int len) {
     return no_error;
 }
@@ -165,63 +45,22 @@ int verify_certificate(struct TLSContext *context, struct TLSCertificate **certi
     return no_error;
 }
 
-int send_pending(int client_sock, struct TLSContext *context) {
-    std::string log_tag = "CPP/send_pending";
-    unsigned int out_buffer_len = 0;
-    const unsigned char *out_buffer = tls_get_write_buffer(context, &out_buffer_len);
-    unsigned int out_buffer_index = 0;
-    int send_res = 0;
-    while ((out_buffer) && (out_buffer_len > 0)) {
-        int res = send(client_sock, (char *)&out_buffer[out_buffer_index], out_buffer_len, 0);
-        if (res == 0) {
-            send_res = res;
-            break;
-        }
-        if (res < 0) {
-            log_error(log_tag.c_str(), "Error in send() function");
-            return -1;
-        }
-        out_buffer_len -= res;
-        out_buffer_index += res;
-    }
-    tls_buffer_clear(context);
-    return send_res;
-}
-
-int recv_string_tls(int socket, TLSContext *context, std::string & message, bool is_server)
+int recv_string_tls(int socket, SSL *context, std::string & message)
 {
     std::string log_tag = "CPP/recv_string_tls";
 
-    std::string buffer;
     ssize_t read_size;
-
-    while (true)
-    {
-        if(recv_string(socket, buffer) == -1)
-            return -1;
-        if (buffer.empty())
-        {
-            message.resize(0);
-            return 0;
-        }
-
-        if (tls_consume_stream(context, reinterpret_cast<const unsigned char *>(&buffer[0]),
-                buffer.size(), verify_signature) < 0) {
-            log_error(log_tag.c_str(), "Error in consume stream");
-            return -1;
-        }
-
-        if (send_pending(socket, context) == -1)
-        {
-            log_error(log_tag.c_str(), "Error in send pending");
-            return -1;
-        }
-
-        if (is_server ? tls_established(context) == 1 : tls_established(context))
-            break;
-    }
-
     size_t message_offset = 0;
+
+    // Set receive timeout on socket
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 500;
+    if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout)) < 0)
+    {
+        log_error(log_tag.c_str(), "Can't setsockopt on socket");
+        return -1;
+    }
 
     while(true)
     {
@@ -230,18 +69,18 @@ int recv_string_tls(int socket, TLSContext *context, std::string & message, bool
             message.resize(message.size() + 1024);
         }
 
-        read_size = tls_read(context, reinterpret_cast<unsigned char *>(&message[0] + message_offset), message.size() - message_offset);
-        if (read_size < 0)
+        read_size = SSL_read(context, &message[0] + message_offset, message.size() - message_offset);
+        if(read_size < 0)
         {
-            log_error(log_tag.c_str(), "Failed to read");
-            return -1;
+            if(errno == EWOULDBLOCK || errno == EAGAIN)	break;
+            if(errno == EINTR)      continue; // All is good. This is just interrrupt.
+            else
+            {
+                log_error(log_tag.c_str(), "There is critical recv error. Can't process client. Read: %d, Errno: %s", read_size, std::strerror(errno));
+                return -1;
+            }
         }
-        else if(read_size == 0) break;
-
-        if(message_offset + read_size >= message.size()) // If there isn't any space in message string - just increase it
-        {
-            message.resize(message_offset + read_size + 1024);
-        }
+        else if(read_size == 0)	return -1;
 
         message_offset += read_size;
     }
@@ -251,69 +90,98 @@ int recv_string_tls(int socket, TLSContext *context, std::string & message, bool
     return 0;
 }
 
-int send_string_tls(int client_socket, TLSContext *client_context, const std::string& string_to_send)
+int send_string_tls(int socket, TLSContext *context, const std::string& string_to_send)
 {
-    if (string_to_send.empty())
+    std::string log_tag = "CPP/send_string_tls";
+
+    if(string_to_send.empty())
         return 0;
-    tls_write(client_context, reinterpret_cast<const unsigned char *>(&string_to_send[0]), string_to_send.size());
-    if (send_pending(client_socket, client_context) == -1)
+
+    size_t offset = 0;
+
+    // Set send timeout on socket
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 100;
+    if(setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (char *) &timeout, sizeof(timeout)) < 0)
+    {
+        log_error(log_tag.c_str(), "Can't setsockopt on socket");
         return -1;
+    }
+
+    while(string_to_send.size() - offset != 0)
+    {
+        ssize_t send_size = SSL_write(context, string_to_send.c_str() + offset, string_to_send.size() - offset);
+        if(send_size < 0)
+        {
+            if(errno == EAGAIN) break;
+            if(errno == EINTR)      continue; // All is good. This is just interrrupt.
+            else {
+                log_error(log_tag.c_str(), "There is critical send error. Can't process client. Send: %d, Errno: %s", send_size, std::strerror(errno));
+                return -1;
+            }
+        }
+        if(send_size == 0)
+        {
+            return -1;
+        }
+        offset += send_size;
+    }
+
     return 0;
 }
 
-SSL* init_tls_server_server()
+SSL* init_tls_server_server(std::string & sni)
 {
-    struct TLSContext *server_context = tls_create_context(1, TLS_V12);
+    std::string log_tag = "CPP/init_tls_server_server";
 
-    return server_context;
-}
+    SSL *server_context = SSL_CTX_new(SSLv3_server_method());
 
-SSL* init_tls_server_client(int client_socket, SSL* server_context, std::string & sni)
-{
-    std::string log_tag = "CPP/init_tls_server_client";
-
-    struct TLSContext *client_context = tls_accept(server_context);
-
-    // Process ClientHello
-    std::string buffer(1024, ' ');
+    if (!server_context) {
+        log_error(log_tag.c_str(), "Error creating server context");
+        return NULL;
+    }
 
     // Generate certificates
     GeneratedCA certificate;
     generate_ssl_cert(sni, certificate);
 
     // Load certificates
-    tls_load_certificates(client_context,
+    tls_load_certificates(server_context,
                           reinterpret_cast<const unsigned char *>(&certificate.public_key_pem[0]), certificate.public_key_pem.size());
-    tls_load_private_key(client_context,
+    tls_load_private_key(server_context,
                          reinterpret_cast<const unsigned char *>(&certificate.private_key_pem[0]), certificate.private_key_pem.size());
 
-    ssize_t read_size;
-
-    while ((read_size = recv(client_socket, &buffer[0], buffer.size(), 0)) > 0)
-    {
-        if (tls_consume_stream(client_context,
-                reinterpret_cast<const unsigned char *>(&buffer[0]),
-                read_size, verify_signature) > 0)
-            break;
-    }
-
-    if(read_size < 0)
-    {
-        log_error(log_tag.c_str(), "Failed to process ClientHello");
+    if (!SSL_CTX_check_private_key(server_context)) {
+        log_error(log_tag.c_str(), "Private key not loaded");
         return NULL;
     }
 
-    if (send_pending(client_socket, client_context) == -1)
-        return NULL;
+    return server_context;
+}
 
-    return client_context;
+SSL* init_tls_server_client(int client_socket, SSL* server_context)
+{
+    std::string log_tag = "CPP/init_tls_server_client";
+
+    SSL *client = SSL_new(server_context);
+
+    SSL_set_fd(client, client_socket);
+
+    if (!SSL_accept(client))
+    {
+        log_error(log_tag.c_str(), "Error in handshake");
+        return NULL;
+    }
+
+    return client;
 }
 
 SSL* init_tls_client(int socket, std::string & sni)
 {
     std::string log_tag = "CPP/init_tls_client";
 
-    struct TLSContext *client_context = tls_create_context(0, TLS_V12);
+    SSL *client_context = SSL_CTX_new(SSLv3_client_method());
 
     // Load root certificates
     // Read them from file if need
@@ -328,28 +196,21 @@ SSL* init_tls_client(int socket, std::string & sni)
                                reinterpret_cast<const unsigned char *>(root_cert_store.c_str()),
                                root_cert_store.size());
 
-    // Set sni. It may contain fake SNI to bypass DPI
-    tls_sni_set(client_context, sni.c_str());
+    // Set certificate validate function
+    SSL_CTX_set_verify(client_context, SSL_VERIFY_PEER, verify_certificate);
 
-    // Generate and send ClientHello
-    tls_client_connect(client_context);
-    send_pending(socket, client_context);
-
-    // Process ServerHello
-    std::string buffer(1024, ' ');
-
-    ssize_t read_size;
-
-    while ((read_size = recv(socket, &buffer[0], buffer.size(), 0)) > 0) {
-        tls_consume_stream(client_context, reinterpret_cast<const unsigned char *>(&buffer[0]), read_size, verify_certificate);
-        send_pending(socket, client_context);
-        if (tls_established(client_context))
-            break;
+    if (!client_context) {
+        log_error(log_tag.c_str(), "Error initializing client context");
+        return NULL;
     }
 
-    if(read_size < 0)
-    {
-        log_error(log_tag.c_str(), "Failed to process ServerHello");
+    SSL_set_fd(client_context, socket);
+
+    tls_sni_set(client_context, sni.c_str());
+
+    int ret;
+    if ((ret = SSL_connect(client_context)) != 1) {
+        log_error(log_tag.c_str(), "Handshake Error %i", ret);
         return NULL;
     }
 

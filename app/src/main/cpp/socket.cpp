@@ -7,6 +7,8 @@ extern struct Settings settings;
 
 int recv_string(int socket, std::string & message)
 {
+    std::string log_tag = "CPP/recv_string";
+
     ssize_t read_size;
     size_t message_offset = 0;
 
@@ -16,7 +18,7 @@ int recv_string(int socket, std::string & message)
     timeout.tv_usec = 500;
     if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout)) < 0)
     {
-        std::cerr << "Can't setsockopt on socket" << std::endl;
+        log_error(log_tag.c_str(), "Can't setsockopt on socket");
         return -1;
     }
 
@@ -34,7 +36,7 @@ int recv_string(int socket, std::string & message)
             if(errno == EINTR)      continue; // All is good. This is just interrrupt.
             else
             {
-                std::cerr << "There is critical read error. Can't process client. Errno: " << std::strerror(errno) << std::endl;
+                log_error(log_tag.c_str(), "There is critical read error. Can't process client. Errno: %s", std::strerror(errno));
                 return -1;
             }
         }
@@ -50,12 +52,14 @@ int recv_string(int socket, std::string & message)
 
 int recv_string(int socket, std::string & message, struct timeval timeout)
 {
+    std::string log_tag = "CPP/recv_string";
+
     ssize_t read_size;
     size_t message_offset = 0;
 
     if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout)) < 0)
     {
-        std::cerr << "Can't setsockopt on socket" << std::endl;
+        log_error(log_tag.c_str(), "Can't setsockopt on socket");
         return -1;
     }
 
@@ -73,7 +77,7 @@ int recv_string(int socket, std::string & message, struct timeval timeout)
             if(errno == EINTR)      continue; // All is good. This is just interrrupt.
             else
             {
-                std::cerr << "There is critical read error. Can't process client. Errno: " << std::strerror(errno) << std::endl;
+                log_error(log_tag.c_str(), "There is critical read error. Can't process client. Errno: %s", std::strerror(errno));
                 return -1;
             }
         }

@@ -39,27 +39,39 @@ void proxy_https(int client_socket, std::string host, int port)
 	// Init tlse if SNI replace enabled
 	struct TLSContext *server_server_context;
 	struct TLSContext *server_client_context;
-	struct TLSContext *client_context;
+	SSL *client_context;
 	if(settings.https.is_use_sni_replace && hostlist_condition)
 	{
 		// Create server. It will decrypt client's traffic
-        server_server_context = init_tls_server_server();
-		server_client_context = init_tls_server_client(client_socket, server_server_context, host);
+        server_server_context = init_tls_server_server(host);
+        if(server_server_context == NULL)
+        {
+            SSL_CTX_free(server_server_context);
+            close(client_socket);
+            close(remote_server_socket);
+            return;
+        }
+		server_client_context = init_tls_server_client(client_socket, server_server_context);
 		if(server_client_context == NULL){
-			close(remote_server_socket);
-			close(client_socket);
-			tls_destroy_context(server_client_context);
-			tls_destroy_context(server_server_context);
+            SSL_shutdown(server_client_context);
+            shutdown(client_socket, SHUT_RDWR);
+            close(client_socket);
+            SSL_free(server_client_context);
+            close(remote_server_socket);
 			return;
 		}
 		// Create client. It will encrypt and send traffic with fake SNI
-		std::string fake_sni = "google.com";
+		std::string fake_sni = "yandex.ru";
 		client_context = init_tls_client(remote_server_socket, fake_sni);
         if(client_context == NULL){
+            SSL_shutdown(client_context);
             close(remote_server_socket);
+            SSL_CTX_free(client_context);
+
+            SSL_shutdown(server_client_context);
+            shutdown(client_socket, SHUT_RDWR);
             close(client_socket);
-            tls_destroy_context(server_client_context);
-            tls_destroy_context(server_server_context);
+            SSL_free(server_client_context);
             return;
         }
 	}
@@ -68,43 +80,59 @@ void proxy_https(int client_socket, std::string host, int port)
 
 	if(settings.https.is_use_sni_replace && hostlist_condition) {
 		while(!stop_flag) {
-			if (recv_string_tls(client_socket, server_client_context, buffer, true) ==
+			if (recv_string_tls(client_socket, server_client_context, buffer) ==
 				-1) // Receive request from client
             {
+                SSL_shutdown(client_context);
                 close(remote_server_socket);
+                SSL_CTX_free(client_context);
+
+                SSL_shutdown(server_client_context);
+                shutdown(client_socket, SHUT_RDWR);
                 close(client_socket);
-                tls_destroy_context(server_client_context);
-                tls_destroy_context(server_server_context);
+                SSL_free(server_client_context);
                 return;
             }
 
 			if (send_string_tls(remote_server_socket, client_context, buffer) ==
 				-1) // Send request to server
             {
+                SSL_shutdown(client_context);
                 close(remote_server_socket);
+                SSL_CTX_free(client_context);
+
+                SSL_shutdown(server_client_context);
+                shutdown(client_socket, SHUT_RDWR);
                 close(client_socket);
-                tls_destroy_context(server_client_context);
-                tls_destroy_context(server_server_context);
+                SSL_free(server_client_context);
                 return;
             }
 
-			if (recv_string_tls(remote_server_socket, client_context, buffer, false) ==
+			if (recv_string_tls(remote_server_socket, client_context, buffer) ==
 				-1) // Receive response from server
             {
+                SSL_shutdown(client_context);
                 close(remote_server_socket);
+                SSL_CTX_free(client_context);
+
+                SSL_shutdown(server_client_context);
+                shutdown(client_socket, SHUT_RDWR);
                 close(client_socket);
-                tls_destroy_context(server_client_context);
-                tls_destroy_context(server_server_context);
+                SSL_free(server_client_context);
                 return;
             }
 
 			if (send_string_tls(client_socket, server_client_context, buffer) ==
 				-1)  // Send response to client
             {
+                SSL_shutdown(client_context);
                 close(remote_server_socket);
+                SSL_CTX_free(client_context);
+
+                SSL_shutdown(server_client_context);
+                shutdown(client_socket, SHUT_RDWR);
                 close(client_socket);
-                tls_destroy_context(server_client_context);
-                tls_destroy_context(server_server_context);
+                SSL_free(server_client_context);
                 return;
             }
 		}
