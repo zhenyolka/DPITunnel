@@ -19,6 +19,8 @@ jclass utils_class;
 
 void proxy_https(int client_socket, std::string host, int port)
 {
+	std::string log_tag = "CPP/proxy_https";
+
 	int remote_server_socket;
 
 	// In VPN mode when connecting to https sites proxy server gets CONNECT requests with ip addresses
@@ -77,116 +79,95 @@ void proxy_https(int client_socket, std::string host, int port)
         }
 	}
 
+    struct pollfd fds[2];
+
+	// fds[0] is client socket
+	fds[0].fd = client_socket;
+	fds[0].events = POLLIN;
+
+	// fds[1] is remote server socket
+	fds[1].fd = remote_server_socket;
+	fds[1].events = POLLIN;
+
+	// Set poll() timeout
+	int timeout = 10000;
+
 	std::string buffer(1024, ' ');
 
-	if(settings.https.is_use_sni_replace && hostlist_condition) {
-		while(!stop_flag) {
-			if (recv_string_tls(client_socket, server_client_context, buffer) ==
-				-1) // Receive request from client
-            {
-                SSL_shutdown(client_context);
-                close(remote_server_socket);
-                SSL_CTX_free(client_context);
-
-                SSL_shutdown(server_client_context);
-                shutdown(client_socket, SHUT_RDWR);
-                close(client_socket);
-                SSL_free(server_client_context);
-                return;
-            }
-
-			if (send_string_tls(remote_server_socket, client_context, buffer) ==
-				-1) // Send request to server
-            {
-                SSL_shutdown(client_context);
-                close(remote_server_socket);
-                SSL_CTX_free(client_context);
-
-                SSL_shutdown(server_client_context);
-                shutdown(client_socket, SHUT_RDWR);
-                close(client_socket);
-                SSL_free(server_client_context);
-                return;
-            }
-
-			if (recv_string_tls(remote_server_socket, client_context, buffer) ==
-				-1) // Receive response from server
-            {
-                SSL_shutdown(client_context);
-                close(remote_server_socket);
-                SSL_CTX_free(client_context);
-
-                SSL_shutdown(server_client_context);
-                shutdown(client_socket, SHUT_RDWR);
-                close(client_socket);
-                SSL_free(server_client_context);
-                return;
-            }
-
-			if (send_string_tls(client_socket, server_client_context, buffer) ==
-				-1)  // Send response to client
-            {
-                SSL_shutdown(client_context);
-                close(remote_server_socket);
-                SSL_CTX_free(client_context);
-
-                SSL_shutdown(server_client_context);
-                shutdown(client_socket, SHUT_RDWR);
-                close(client_socket);
-                SSL_free(server_client_context);
-                return;
-            }
-		}
-	}
-	else
+	while (!stop_flag)
 	{
-        while(!stop_flag)
-        {
-            if(recv_string(client_socket, buffer) == -1) // Receive request from client
-            {
-                close(remote_server_socket);
-                close(client_socket);
-                return;
-            }
+		int ret = poll(fds, 2, timeout);
 
-            // Check if split is need
-            if(hostlist_condition && settings.https.is_use_split && is_clienthello_request)
-            {
-                if(send_string(remote_server_socket, buffer, settings.https.split_position) == -1) // Send request to server
-                {
-                    close(remote_server_socket);
-                    close(client_socket);
-                    return;
-                }
+		// Check state
+		if ( ret == -1 )
+		{
+			log_error(log_tag.c_str(), "Poll error. Errno: %s", std::strerror(errno));
+			break;
+		}
+		else if ( ret == 0 ) // Just timeout
+			continue;
+		else
+		{
+			// Process client socket
+			if (fds[0].revents == POLLIN)
+			{
+				fds[0].revents = 0;
 
-                // VPN mode specific
-                // VPN mode requires splitting for all packets
-                is_clienthello_request = settings.other.is_use_vpn;
-            }
-            else
-            {
-                if(send_string(remote_server_socket, buffer) == -1) // Send request to server
-                {
-                    close(remote_server_socket);
-                    close(client_socket);
-                    return;
-                }
-            }
+				// Transfer data
+				if(settings.https.is_use_sni_replace && hostlist_condition)
+				{
+					if (recv_string_tls(client_socket, server_client_context, buffer) ==
+						-1) // Receive request from client
+						break;
 
-            if(recv_string(remote_server_socket, buffer) == -1) // Receive response from server
-            {
-                close(remote_server_socket);
-                close(client_socket);
-                return;
-            }
+					if (send_string_tls(remote_server_socket, client_context, buffer) ==
+						-1) // Send request to server
+						break;
+				}
+				else
+				{
+					if(recv_string(client_socket, buffer) == -1) // Receive request from client
+						break;
 
-            if(send_string(client_socket, buffer) == -1) // Send response to client
-            {
-                close(remote_server_socket);
-                close(client_socket);
-                return;
-            }
-        }
+					// Check if split is need
+					if(hostlist_condition && settings.https.is_use_split && is_clienthello_request)
+					{
+						if(send_string(remote_server_socket, buffer, settings.https.split_position) == -1) // Send request to server
+							break;
+						// VPN mode specific
+						// VPN mode requires splitting for all packets
+						is_clienthello_request = settings.other.is_use_vpn;
+					}
+					else
+						if(send_string(remote_server_socket, buffer) == -1) // Send request to server
+							break;
+				}
+			}
+
+			// Process server socket
+			if (fds[1].revents == POLLIN)
+			{
+				fds[1].revents = 0;
+
+				// Transfer data
+				if(settings.https.is_use_sni_replace && hostlist_condition)
+				{
+					if (recv_string_tls(remote_server_socket, client_context, buffer) ==
+						-1) // Receive response from server
+						break;
+					if (send_string_tls(client_socket, server_client_context, buffer) ==
+						-1)  // Send response to client
+						break;
+				}
+				else
+				{
+					if(recv_string(remote_server_socket, buffer) == -1) // Receive response from server
+						break;
+					if(send_string(client_socket, buffer) == -1) // Send response to client
+						break;
+				}
+			}
+		}
 	}
 
 	if(settings.https.is_use_sni_replace && hostlist_condition)
@@ -209,6 +190,8 @@ void proxy_https(int client_socket, std::string host, int port)
 
 void proxy_http(int client_socket, std::string host, int port, std::string first_request)
 {
+	std::string log_tag = "CPP/proxy_http";
+
 	int remote_server_socket;
 
 	// Search in host list one time to save cpu time
@@ -243,66 +226,68 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 		}
 	}
 
-	if(recv_string(remote_server_socket, first_request) == -1) // Receive response from server
-	{
-		close(remote_server_socket);
-		close(client_socket);
-		return;
-	}
+	struct pollfd fds[2];
 
-	if(send_string(client_socket, first_request) == -1) // Send response to client
-	{
-		close(remote_server_socket);
-		close(client_socket);
-		return;
-	}
+	// fds[0] is client socket
+	fds[0].fd = client_socket;
+	fds[0].events = POLLIN;
+
+	// fds[1] is remote server socket
+	fds[1].fd = remote_server_socket;
+	fds[1].events = POLLIN;
+
+	// Set poll() timeout
+	int timeout = 10000;
 
 	std::string buffer(1024, ' ');
 
-	while(!stop_flag)
+	while (!stop_flag)
 	{
-		if(recv_string(client_socket, buffer) == -1) // Receive request from client
-		{
-			close(remote_server_socket);
-			close(client_socket);
-			return;
-		}
+		int ret = poll(fds, 2, timeout);
 
-		// Modify http request to bypass dpi
-		modify_http_request(buffer, hostlist_condition);
-
-		// Check if split is need
-		if(hostlist_condition && settings.http.is_use_split)
+		// Check state
+		if ( ret == -1 )
 		{
-			if(send_string(remote_server_socket, buffer, settings.http.split_position) == -1) // Send request to serv$
-			{
-				close(remote_server_socket);
-				close(client_socket);
-				return;
-			}
+			log_error(log_tag.c_str(), "Poll error. Errno: %s", std::strerror(errno));
+			break;
 		}
+		else if ( ret == 0 ) // Just timeout
+			continue;
 		else
 		{
-			if(send_string(remote_server_socket, buffer) == -1) // Send request to server
+			// Process client socket
+			if (fds[0].revents == POLLIN)
 			{
-				close(remote_server_socket);
-				close(client_socket);
-				return;
+				fds[0].revents = 0;
+
+				// Transfer data
+				if(recv_string(client_socket, buffer) == -1) // Receive request from client
+					break;
+				// Modify http request to bypass dpi
+				modify_http_request(buffer, hostlist_condition);
+
+				// Check if split is need
+				if(hostlist_condition && settings.http.is_use_split)
+				{
+					if(send_string(remote_server_socket, buffer, settings.http.split_position) == -1) // Send request to serv$
+						break;
+				}
+				else
+					if(send_string(remote_server_socket, buffer) == -1) // Send request to server
+						break;
 			}
-		}
 
-		if(recv_string(remote_server_socket, buffer) == -1) // Receive response from server
-		{
-			close(remote_server_socket);
-			close(client_socket);
-			return;
-		}
+			// Process server socket
+			if (fds[1].revents == POLLIN)
+			{
+				fds[1].revents = 0;
 
-		if(send_string(client_socket, buffer) == -1) // Send response to client
-		{
-			close(remote_server_socket);
-			close(client_socket);
-			return;
+				// Transfer data
+				if(recv_string(remote_server_socket, buffer) == -1) // Receive response from server
+					break;
+				if(send_string(client_socket, buffer) == -1) // Send response to client
+					break;
+			}
 		}
 	}
 
@@ -351,8 +336,6 @@ void process_client(int client_socket)
 	{
 		proxy_http(client_socket, host, port, request);
 	}
-
-	close(client_socket);
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(JNIEnv* env, jobject obj, jobject prefs_object, jstring app_files_path)

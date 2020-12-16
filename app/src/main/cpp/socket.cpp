@@ -15,7 +15,7 @@ int recv_string(int socket, std::string & message)
     // Set receive timeout on socket
     struct timeval timeout;
     timeout.tv_sec = 0;
-    timeout.tv_usec = 500;
+    timeout.tv_usec = 100;
     if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout)) < 0)
     {
         log_error(log_tag.c_str(), "Can't setsockopt on socket");
@@ -40,7 +40,7 @@ int recv_string(int socket, std::string & message)
                 return -1;
             }
         }
-        else if(read_size == 0)	return -1;
+        else if(read_size == 0) return -1;
 
         message_offset += read_size;
     }
@@ -81,7 +81,7 @@ int recv_string(int socket, std::string & message, struct timeval timeout)
                 return -1;
             }
         }
-        else if(read_size == 0)	return -1;
+        else if(read_size == 0) return -1;
 
         message_offset += read_size;
     }
