@@ -72,9 +72,10 @@ int resolve_host_over_dns(std::string host, std::string & ip)
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    if(getaddrinfo(host.c_str(), NULL, &hints, &res) != 0)
+    int err;
+    if((err = getaddrinfo(host.c_str(), NULL, &hints, &res)) != 0)
     {
-        log_error(log_tag.c_str(), "Failed to get host address. Errno: %s", strerror(errno));
+        log_error(log_tag.c_str(), "Failed to get host address. Error: %s, Errno: %s", gai_strerror(err), strerror(errno));
         return -1;
     }
 
@@ -99,6 +100,9 @@ int resolve_host_over_dns(std::string host, std::string & ip)
 
 int resolve_host(std::string host, std::string & ip)
 {
+    if (host.empty())
+        return -1;
+
     // Check if host is IP
     struct sockaddr_in sa;
     int result = inet_pton(AF_INET, host.c_str(), &sa.sin_addr);
@@ -138,18 +142,22 @@ int reverse_resolve_host(std::string & host)
         jmethodID localdnsserver_get_hostname = jni_env->GetStaticMethodID(localdnsserver_class, "getHostname", "(Ljava/lang/String;)Ljava/lang/String;");
         if(localdnsserver_get_hostname == NULL)
         {
+            javaVm->DetachCurrentThread();
             log_error(log_tag.c_str(), "Failed to find getHostname method");
             return -1;
         }
 
         // Call Java method
         jstring response_string_object = (jstring) jni_env->CallStaticObjectMethod(localdnsserver_class, localdnsserver_get_hostname, jni_env->NewStringUTF(host.c_str()));
-        host = jni_env->GetStringUTFChars(response_string_object, 0);
-        if(host.empty())
+        std::string buffer = jni_env->GetStringUTFChars(response_string_object, 0);
+        if(buffer.empty())
         {
+            javaVm->DetachCurrentThread();
             log_error(log_tag.c_str(), "Failed to find hostname to ip");
             return -1;
         }
+
+        host = buffer;
 
         // Detach thread
         javaVm->DetachCurrentThread();
