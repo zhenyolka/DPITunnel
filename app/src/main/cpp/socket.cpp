@@ -15,7 +15,7 @@ int recv_string(int socket, std::string & message)
     // Set receive timeout on socket
     struct timeval timeout;
     timeout.tv_sec = 0;
-    timeout.tv_usec = 100;
+    timeout.tv_usec = 50;
     if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout)) < 0)
     {
         log_error(log_tag.c_str(), "Can't setsockopt on socket");
@@ -63,6 +63,8 @@ int recv_string(int socket, std::string & message, struct timeval timeout)
         return -1;
     }
 
+    bool is_first_time = true;
+
     while(true)
     {
         if(message.size() - message_offset < 1024) // If there isn't any space in message string - just increase it
@@ -84,6 +86,20 @@ int recv_string(int socket, std::string & message, struct timeval timeout)
         else if(read_size == 0) return -1;
 
         message_offset += read_size;
+
+        if(is_first_time)
+        {
+            struct timeval timeout;
+            timeout.tv_sec = 0;
+            timeout.tv_usec = 50;
+            if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout)) < 0)
+            {
+                log_error(log_tag.c_str(), "Can't setsockopt on socket");
+                return -1;
+            }
+
+            is_first_time = false;
+        }
     }
 
     message.resize(message_offset);
@@ -91,7 +107,7 @@ int recv_string(int socket, std::string & message, struct timeval timeout)
     return 0;
 }
 
-int send_string(int socket, std::string string_to_send)
+int send_string(int socket, const std::string & string_to_send)
 {
     std::string log_tag = "CPP/send_string";
 
@@ -131,7 +147,7 @@ int send_string(int socket, std::string string_to_send)
     return 0;
 }
 
-int send_string(int socket, std::string string_to_send, unsigned int split_position)
+int send_string(int socket, const std::string & string_to_send, unsigned int split_position)
 {
     std::string log_tag = "CPP/send_string";
 

@@ -13,6 +13,7 @@ const std::string CONNECTION_ESTABLISHED_RESPONSE("HTTP/1.1 200 Connection estab
 std::vector<std::thread> threads;
 bool stop_flag;
 int server_socket;
+int interrupt_pipe[2];
 
 jclass localdnsserver_class;
 jclass utils_class;
@@ -79,7 +80,7 @@ void proxy_https(int client_socket, std::string host, int port)
         }
 	}
 
-    struct pollfd fds[2];
+    struct pollfd fds[3];
 
 	// fds[0] is client socket
 	fds[0].fd = client_socket;
@@ -89,14 +90,20 @@ void proxy_https(int client_socket, std::string host, int port)
 	fds[1].fd = remote_server_socket;
 	fds[1].events = POLLIN;
 
+	// fds[2] is interrupt pipe
+	fds[2].fd = interrupt_pipe[0];
+	fds[2].events = POLLIN;
+
 	// Set poll() timeout
 	int timeout = 10000;
 
 	std::string buffer(1024, ' ');
 
+	bool is_first_time = true;
+
 	while (!stop_flag)
 	{
-		int ret = poll(fds, 2, timeout);
+		int ret = poll(fds, 3, timeout);
 
 		// Check state
 		if ( ret == -1 )
@@ -108,17 +115,36 @@ void proxy_https(int client_socket, std::string host, int port)
 			continue;
 		else
 		{
+			if(fds[0].revents & POLLERR || fds[1].revents & POLLERR ||
+			   fds[0].revents & POLLHUP || fds[1].revents & POLLHUP ||
+			   fds[0].revents & POLLNVAL || fds[1].revents & POLLNVAL)
+				break;
 			// Process client socket
-			if (fds[0].revents == POLLIN)
+			if (fds[0].revents & POLLIN)
 			{
 				fds[0].revents = 0;
 
 				// Transfer data
 				if(settings.https.is_use_sni_replace && hostlist_condition)
 				{
-					if (recv_string_tls(client_socket, server_client_context, buffer) ==
-						-1) // Receive request from client
-						break;
+				    if(is_first_time)
+				    {
+						struct timeval timeout;
+						timeout.tv_sec = 2;
+						timeout.tv_usec = 0;
+						if (recv_string_tls(client_socket, server_client_context, buffer, timeout) ==
+							-1) // Receive request from client
+							break;
+
+						is_first_time = false;
+				    }
+				    else
+					{
+						if (recv_string_tls(client_socket, server_client_context, buffer) ==
+							-1) // Receive request from client
+							break;
+                    }
+
 
 					if (send_string_tls(remote_server_socket, client_context, buffer) ==
 						-1) // Send request to server
@@ -145,7 +171,7 @@ void proxy_https(int client_socket, std::string host, int port)
 			}
 
 			// Process server socket
-			if (fds[1].revents == POLLIN)
+			if (fds[1].revents & POLLIN)
 			{
 				fds[1].revents = 0;
 
@@ -167,6 +193,10 @@ void proxy_https(int client_socket, std::string host, int port)
 						break;
 				}
 			}
+
+			fds[0].revents = 0;
+			fds[1].revents = 0;
+			fds[2].revents = 0;
 		}
 	}
 
@@ -226,7 +256,7 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 		}
 	}
 
-	struct pollfd fds[2];
+	struct pollfd fds[3];
 
 	// fds[0] is client socket
 	fds[0].fd = client_socket;
@@ -236,6 +266,10 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 	fds[1].fd = remote_server_socket;
 	fds[1].events = POLLIN;
 
+	// fds[2] is interrupt pipe
+	fds[2].fd = interrupt_pipe[0];
+	fds[2].events = POLLIN;
+
 	// Set poll() timeout
 	int timeout = 10000;
 
@@ -243,7 +277,7 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 
 	while (!stop_flag)
 	{
-		int ret = poll(fds, 2, timeout);
+		int ret = poll(fds, 3, timeout);
 
 		// Check state
 		if ( ret == -1 )
@@ -256,7 +290,11 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 		else
 		{
 			// Process client socket
-			if (fds[0].revents == POLLIN)
+			if(fds[0].revents & POLLERR || fds[1].revents & POLLERR ||
+				fds[0].revents & POLLHUP || fds[1].revents & POLLHUP ||
+				fds[0].revents & POLLNVAL || fds[1].revents & POLLNVAL)
+				break;
+			if (fds[0].revents & POLLIN)
 			{
 				fds[0].revents = 0;
 
@@ -278,7 +316,7 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 			}
 
 			// Process server socket
-			if (fds[1].revents == POLLIN)
+			if (fds[1].revents & POLLIN)
 			{
 				fds[1].revents = 0;
 
@@ -288,6 +326,10 @@ void proxy_http(int client_socket, std::string host, int port, std::string first
 				if(send_string(client_socket, buffer) == -1) // Send response to client
 					break;
 			}
+
+			fds[0].revents = 0;
+			fds[1].revents = 0;
+			fds[2].revents = 0;
 		}
 	}
 
@@ -487,6 +529,8 @@ extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(J
 		return -1;
 	}
 
+	// Init interrupt pipe
+	pipe(interrupt_pipe);
 	return 0;
 }
 
@@ -516,8 +560,11 @@ extern "C" JNIEXPORT void Java_ru_evgeniy_dpitunnel_NativeService_deInit(JNIEnv*
 {
     std::string log_tag = "CPP/deInit";
 
+    stop_flag = true;
+    // Interrupt poll()
+    std::string interrupt = "interrupt";
+    send(interrupt_pipe[1], interrupt.c_str(), interrupt.size(), 0);
 	// Stop all threads
-	stop_flag = true;
 	for(auto& t1 : threads)
 		if(t1.joinable())
 			t1.join();
