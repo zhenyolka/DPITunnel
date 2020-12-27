@@ -210,7 +210,7 @@ SSL* init_tls_client(int socket, std::string & sni)
 
     int ret;
     if ((ret = SSL_connect(client_context)) != 1) {
-        log_error(log_tag.c_str(), "Handshake Error %i", ret);
+        log_error(log_tag.c_str(), "Handshake Error %i. Errno %s", ret, std::strerror(errno));
         return NULL;
     }
 

@@ -19,6 +19,19 @@ int interrupt_pipe[2];
 jclass localdnsserver_class;
 jclass utils_class;
 
+void replaceAll(std::string &s, const std::string &search, const std::string &replace )
+{
+    for(size_t pos = 0; ;pos += replace.length())
+    {
+        // Locate the substring to replace
+        pos = s.find( search, pos );
+        if(pos == std::string::npos) break;
+        // Replace by erasing and inserting
+        s.erase(pos, search.length());
+        s.insert(pos, replace);
+    }
+}
+
 void proxy_https(int client_socket, std::string host, int port)
 {
 	std::string log_tag = "CPP/proxy_https";
@@ -77,9 +90,7 @@ void proxy_https(int client_socket, std::string host, int port)
 
 		// Insert original host address if need
 		std::string fake_sni = settings.sni.sni_spell;
-        size_t pos = 0;
-        while ((pos = fake_sni.find(SNI_REPLACE_VARIABLE) != std::string::npos))
-            fake_sni.replace(pos, SNI_REPLACE_VARIABLE.size() - 1, host);
+        replaceAll(fake_sni, SNI_REPLACE_VARIABLE, host);
 
         // Create client. It will encrypt and send traffic with fake SNI
 		client_context = init_tls_client(remote_server_socket, fake_sni);
