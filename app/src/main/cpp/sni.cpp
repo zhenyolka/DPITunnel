@@ -90,64 +90,6 @@ int recv_string_tls(int socket, SSL *context, std::string & message)
     return 0;
 }
 
-int recv_string_tls(int socket, SSL *context, std::string & message, struct timeval timeout)
-{
-    std::string log_tag = "CPP/recv_string_tls";
-
-    ssize_t read_size;
-    size_t message_offset = 0;
-
-    // Set receive timeout on socket
-    if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout)) < 0)
-    {
-        log_error(log_tag.c_str(), "Can't setsockopt on socket");
-        return -1;
-    }
-
-    bool is_first_time = true;
-
-    while(true)
-    {
-        if(message.size() - message_offset < 1024) // If there isn't any space in message string - just increase it
-        {
-            message.resize(message.size() + 1024);
-        }
-
-        read_size = SSL_read(context, &message[0] + message_offset, message.size() - message_offset);
-        if(read_size < 0)
-        {
-            if(errno == EWOULDBLOCK || errno == EAGAIN)	break;
-            if(errno == EINTR)      continue; // All is good. This is just interrrupt.
-            else
-            {
-                log_error(log_tag.c_str(), "There is critical recv error. Can't process client. Errno: %s", std::strerror(errno));
-                return -1;
-            }
-        }
-        else if(read_size == 0)	return -1;
-
-        message_offset += read_size;
-
-        if(is_first_time)
-        {
-            struct timeval timeout;
-            timeout.tv_sec = 0;
-            timeout.tv_usec = 50;
-            if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout)) < 0)
-            {
-                log_error(log_tag.c_str(), "Can't setsockopt on socket");
-                return -1;
-            }
-
-            is_first_time = false;
-        }
-    }
-
-    message.resize(message_offset);
-
-    return 0;
-}
-
 int send_string_tls(int socket, TLSContext *context, const std::string & string_to_send)
 {
     std::string log_tag = "CPP/send_string_tls";

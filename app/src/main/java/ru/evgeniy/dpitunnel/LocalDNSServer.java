@@ -67,7 +67,7 @@ public class LocalDNSServer extends Thread {
         byte[] response = null;
         try {
             // Encode DNS request to base64
-            String dns_message_encoded = Base64.encodeToString(request.toWire(), Base64.NO_PADDING);
+            String dns_message_encoded = Base64.encodeToString(request.toWire(), Base64.URL_SAFE | Base64.NO_PADDING | Base64.NO_WRAP);
 
             System.setProperty("http.keepAlive", "false");
             System.setProperty("java.net.preferIPv4Stack" , "true");

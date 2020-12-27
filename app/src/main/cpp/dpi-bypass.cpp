@@ -40,6 +40,15 @@ void proxy_https(int client_socket, std::string host, int port)
 	// Split only first https packet, what contains unencrypted sni
 	bool is_clienthello_request = true;
 
+	// Set proper timeout
+	struct timeval structtimeval;
+	structtimeval.tv_sec = 0;
+	structtimeval.tv_usec = 0;
+	if(setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &structtimeval, sizeof(structtimeval)) < 0)
+	{
+		log_error(log_tag.c_str(), "Can't setsockopt on socket");
+		return;
+	}
 	// Init tlse if SNI replace enabled
 	struct TLSContext *server_server_context;
 	struct TLSContext *server_client_context;
@@ -127,23 +136,9 @@ void proxy_https(int client_socket, std::string host, int port)
 				// Transfer data
 				if(settings.https.is_use_sni_replace && hostlist_condition)
 				{
-				    if(is_first_time)
-				    {
-						struct timeval timeout;
-						timeout.tv_sec = 2;
-						timeout.tv_usec = 0;
-						if (recv_string_tls(client_socket, server_client_context, buffer, timeout) ==
-							-1) // Receive request from client
-							break;
-
-						is_first_time = false;
-				    }
-				    else
-					{
-						if (recv_string_tls(client_socket, server_client_context, buffer) ==
-							-1) // Receive request from client
-							break;
-                    }
+				    if (recv_string_tls(client_socket, server_client_context, buffer) ==
+				        -1) // Receive request from client
+				        break;
 
 
 					if (send_string_tls(remote_server_socket, client_context, buffer) ==
