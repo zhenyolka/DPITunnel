@@ -3,7 +3,7 @@
     <string name="off">WŁĄCZONE</string>
     <string name="port">Port:</string>
     <string name="other">Inne</string>
-    <string name="split_summary">Gdy ta opcja jest włączona, żądania są dzielone na części</string>
+    <string name="split_summary">Rozdziela żądania serwera na części</string>
     <string name="split_title">Dzielenie żądań</string>
     <string name="split_position_title">Pozycja podziału</string>
     <string name="split_position_summary">Naciśnij, by ustawić pozycję podziału</string>
@@ -56,4 +56,9 @@
     <string name="hostlist_source_summary">Wskazuje, gdzie pobrać plik listy hostów</string>
     <string name="hostlist_format_title">Format pliku listy hostów</string>
     <string name="hostlist_format_summary">Określa format pliku listy hostów</string>
+    <string name="service_running_warning">Usługa działa. Zatrzymaj to przed otwarciem ustawień</string>
+    <string name="sni_title">SNI zamień</string>
+    <string name="sni_summary">Zmienia pole SNI w żądaniach HTTPS ClientHello</string>
+    <string name="sni_spell_title">Pisanie SNI</string>
+    <string name="sni_spell_summary">SNI zostanie zastąpiony przez tę linię. Możesz użyć ${SNI}, aby wstawić oryginalny SNI</string>
 </resources>

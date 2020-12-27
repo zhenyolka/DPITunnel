@@ -6,7 +6,7 @@
     <string name="off">OFF</string>
     <string name="port">Port:</string>
     <string name="other">Other</string>
-    <string name="split_summary">If this option is enabled, server requests are divided into parts</string>
+    <string name="split_summary">Divide packets into parts</string>
     <string name="split_title">Split requests</string>
     <string name="split_position_title">Split position</string>
     <string name="split_position_summary">Click to set request split position</string>
@@ -60,4 +60,9 @@
     <string name="hostlist_source_summary">Indicates where to download the hostlist file</string>
     <string name="hostlist_format_title">Hostlist file format</string>
     <string name="hostlist_format_summary">Specifies the hostlist file format</string>
+    <string name="service_running_warning">Service is running. Please stop it before open settings</string>
+    <string name="sni_title">SNI replace</string>
+    <string name="sni_summary">Replace SNI field in HTTPS ClientHello request</string>
+    <string name="sni_spell_title">SNI spell</string>
+    <string name="sni_spell_summary">SNI will be replaced by this line. You can use ${SNI} to insert the original SNI</string>
 </resources>

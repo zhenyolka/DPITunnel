@@ -36,8 +36,13 @@ struct Settings
         unsigned int split_position;
         bool is_use_socks5;
         bool is_use_http_proxy;
-        bool is_use_sni_replace;
     } https;
+
+    struct
+    {
+        bool is_use_sni_replace;
+        std::string sni_spell;
+    } sni;
 
     struct
     {

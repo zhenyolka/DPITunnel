@@ -9,6 +9,7 @@ Settings settings;
 JavaVM* javaVm;
 
 const std::string CONNECTION_ESTABLISHED_RESPONSE("HTTP/1.1 200 Connection established\r\n\r\n");
+const std::string SNI_REPLACE_VARIABLE("${SNI}");
 //std::vector<pid_t> child_processes;
 std::vector<std::thread> threads;
 bool stop_flag;
@@ -53,7 +54,7 @@ void proxy_https(int client_socket, std::string host, int port)
 	struct TLSContext *server_server_context;
 	struct TLSContext *server_client_context;
 	SSL *client_context;
-	if(settings.https.is_use_sni_replace && hostlist_condition)
+	if(settings.sni.is_use_sni_replace && hostlist_condition)
 	{
 		// Create server. It will decrypt client's traffic
         server_server_context = init_tls_server_server(host);
@@ -73,8 +74,14 @@ void proxy_https(int client_socket, std::string host, int port)
             close(remote_server_socket);
 			return;
 		}
-		// Create client. It will encrypt and send traffic with fake SNI
-		std::string fake_sni = "yandex.ru";
+
+		// Insert original host address if need
+		std::string fake_sni = settings.sni.sni_spell;
+        size_t pos = 0;
+        while ((pos = fake_sni.find(SNI_REPLACE_VARIABLE) != std::string::npos))
+            fake_sni.replace(pos, SNI_REPLACE_VARIABLE.size() - 1, host);
+
+        // Create client. It will encrypt and send traffic with fake SNI
 		client_context = init_tls_client(remote_server_socket, fake_sni);
         if(client_context == NULL){
             SSL_shutdown(client_context);
@@ -134,7 +141,7 @@ void proxy_https(int client_socket, std::string host, int port)
 				fds[0].revents = 0;
 
 				// Transfer data
-				if(settings.https.is_use_sni_replace && hostlist_condition)
+				if(settings.sni.is_use_sni_replace && hostlist_condition)
 				{
 				    if (recv_string_tls(client_socket, server_client_context, buffer) ==
 				        -1) // Receive request from client
@@ -171,7 +178,7 @@ void proxy_https(int client_socket, std::string host, int port)
 				fds[1].revents = 0;
 
 				// Transfer data
-				if(settings.https.is_use_sni_replace && hostlist_condition)
+				if(settings.sni.is_use_sni_replace && hostlist_condition)
 				{
 					if (recv_string_tls(remote_server_socket, client_context, buffer) ==
 						-1) // Receive response from server
@@ -195,7 +202,7 @@ void proxy_https(int client_socket, std::string host, int port)
 		}
 	}
 
-	if(settings.https.is_use_sni_replace && hostlist_condition)
+	if(settings.sni.is_use_sni_replace && hostlist_condition)
 	{
 		SSL_shutdown(client_context);
 		close(remote_server_socket);
@@ -432,10 +439,6 @@ extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(J
         return -1;
     }
 
-    // Test
-    settings.https.is_use_sni_replace = true;
-    // Test
-
     // Fill settings
     jstring string_object;
     settings.https.is_use_split = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("https_split"), false);
@@ -443,6 +446,10 @@ extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(J
     settings.https.split_position = (unsigned int) atoi(env->GetStringUTFChars(string_object, 0));
     settings.https.is_use_socks5 = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("https_socks5"), false);
     settings.https.is_use_http_proxy = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("https_http_proxy"), false);
+
+    settings.sni.is_use_sni_replace = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("sni_enable"), false);
+    string_object = (jstring) env->CallObjectMethod(prefs_object, prefs_getString, env->NewStringUTF("sni_spell"), NULL);
+    settings.sni.sni_spell = env->GetStringUTFChars(string_object, 0);
 
     settings.http.is_use_split = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("http_split"), false);
     string_object = (jstring) env->CallObjectMethod(prefs_object, prefs_getString, env->NewStringUTF("http_split_position"), NULL);

@@ -12,8 +12,8 @@ import android.graphics.Color;
 import android.net.VpnService;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.preference.PreferenceManager;
-import android.support.v7.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.security.Permission;
 import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -54,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Set gefault settings values
+        // Set default settings values
         PreferenceManager.setDefaultValues(this, R.xml.settings, false);
 
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -134,58 +133,47 @@ public class MainActivity extends AppCompatActivity {
         }, updateState);
 
         // Initialize buttons
-        mainButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(isServiceRunning(NativeService.class)) {
-                    stopService(new Intent(MainActivity.this, NativeService.class));
-                }
-                else {
-                    // Check permissions
-                    PermissionListener permissionListener = new PermissionListener() {
-                        @Override
-                        public void onPermissionGranted() {
-                            // If ok start service
-                            Intent intent = new Intent(MainActivity.this, NativeService.class);
+        mainButton.setOnClickListener(v -> {
+            if(isServiceRunning(NativeService.class)) {
+                stopService(new Intent(MainActivity.this, NativeService.class));
+            }
+            else {
+                // Check permissions
+                PermissionListener permissionListener = new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted() {
+                        // If ok start service
+                        Intent intent = new Intent(MainActivity.this, NativeService.class);
 
-                            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                                startForegroundService(intent);
-                            else
-                                startService(intent);
-                        }
+                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                            startForegroundService(intent);
+                        else
+                            startService(intent);
+                    }
 
-                        @Override
-                        public void onPermissionDenied(List<String> deniedPermissions) {
-                            // If not ok show warning
-                            Toast.makeText(MainActivity.this, getString(R.string.please_grant_permissions), Toast.LENGTH_LONG).show();
-                        }
-                    };
+                    @Override
+                    public void onPermissionDenied(List<String> deniedPermissions) {
+                        // If not ok show warning
+                        Toast.makeText(MainActivity.this, getString(R.string.please_grant_permissions), Toast.LENGTH_LONG).show();
+                    }
+                };
 
-                    TedPermission.with(MainActivity.this)
-                            .setPermissionListener(permissionListener)
-                            .setPermissions(Manifest.permission.READ_EXTERNAL_STORAGE)
-                            .check();
-                }
+                TedPermission.with(MainActivity.this)
+                        .setPermissionListener(permissionListener)
+                        .setPermissions(Manifest.permission.READ_EXTERNAL_STORAGE)
+                        .check();
             }
         });
-        settingsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MainActivity.this.startActivity(new Intent(MainActivity.this, SettingsActivity.class));
-            }
-        });
-        browserButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MainActivity.this.startActivity(new Intent(MainActivity.this, BrowserActivity.class));
-            }
-        });
-        updateHostlistButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                updateHostlist();
-            }
-        });
+        settingsButton.setOnClickListener(v -> {
+                if(!isServiceRunning(NativeService.class))
+                    MainActivity.this.startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+                else
+                    Toast
+                            .makeText(this, R.string.service_running_warning, Toast.LENGTH_SHORT)
+                            .show();});
+        browserButton.setOnClickListener(v ->
+                MainActivity.this.startActivity(new Intent(MainActivity.this, BrowserActivity.class)));
+        updateHostlistButton.setOnClickListener(v -> updateHostlist());
 
         // Automatically start on boot if need
         if(isOnBoot) {

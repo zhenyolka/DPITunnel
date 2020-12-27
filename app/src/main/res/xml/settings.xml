@@ -1,110 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="HTTPS">
-        <CheckBoxPreference
+    <androidx.preference.PreferenceCategory android:title="HTTPS">
+        <androidx.preference.CheckBoxPreference
             android:key="https_split"
             android:summary="@string/split_summary"
             android:title="@string/split_title"
             android:defaultValue="true" />
-        <EditTextPreference
+        <androidx.preference.EditTextPreference
             android:dialogTitle="@string/split_position_title"
             android:key="https_split_position"
             android:summary="@string/split_position_summary"
             android:title="@string/split_position_title"
             android:inputType="number"
             android:defaultValue="2" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="https_socks5"
             android:summary="@string/socks5_summary"
             android:title="@string/socks5_title"
             android:defaultValue="false" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="https_http_proxy"
             android:summary="@string/http_proxy_summary"
             android:title="@string/http_proxy_title"
             android:defaultValue="false" />
 
-    </PreferenceCategory>
+    </androidx.preference.PreferenceCategory>
 
-    <PreferenceCategory android:title="HTTP">
-        <CheckBoxPreference
+    <androidx.preference.PreferenceCategory android:title="SNI">
+        <androidx.preference.CheckBoxPreference
+            android:key="sni_enable"
+            android:summary="@string/sni_summary"
+            android:title="@string/sni_title"
+            android:defaultValue="false" />
+        <androidx.preference.EditTextPreference
+            android:key="sni_spell"
+            android:summary="@string/sni_spell_summary"
+            android:title="@string/sni_spell_title"
+            android:defaultValue="${SNI}." />
+
+    </androidx.preference.PreferenceCategory>
+
+    <androidx.preference.PreferenceCategory android:title="HTTP">
+        <androidx.preference.CheckBoxPreference
             android:key="http_split"
             android:summary="@string/split_summary"
             android:title="@string/split_title"
             android:defaultValue="true" />
-        <EditTextPreference
+        <androidx.preference.EditTextPreference
             android:dialogTitle="@string/split_position_title"
             android:key="http_split_position"
             android:summary="@string/split_position_summary"
             android:title="@string/split_position_title"
             android:inputType="number"
             android:defaultValue="2" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="http_header_switch"
             android:summary="@string/http_header_summary"
             android:title="@string/http_header_title"
             android:defaultValue="true" />
-        <EditTextPreference
+        <androidx.preference.EditTextPreference
             android:dialogTitle="@string/http_header_spell_title"
             android:key="http_header_spell"
             android:title="@string/http_header_spell_title"
             android:defaultValue="hOsT" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="http_dot"
             android:summary="@string/http_dot_summary"
             android:title="@string/http_dot_title"
             android:defaultValue="false" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="http_tab"
             android:summary="@string/http_tab_summary"
             android:title="@string/http_tab_title"
             android:defaultValue="false" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="http_space_host"
             android:summary="@string/http_space_host_summary"
             android:title="@string/http_space_host_title"
             android:defaultValue="false" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="http_space_method"
             android:summary="@string/http_space_method_summary"
             android:title="@string/http_space_method_title"
             android:defaultValue="false" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="http_newline_method"
             android:summary="@string/http_newline_method_summary"
             android:title="@string/http_newline_method_title"
             android:defaultValue="false" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="http_unix_newline"
             android:summary="@string/http_unix_newline_summary"
             android:title="@string/http_unix_newline_title"
             android:defaultValue="false" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="http_socks5"
             android:summary="@string/socks5_summary"
             android:title="@string/socks5_title"
             android:defaultValue="false" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="http_http_proxy"
             android:summary="@string/http_proxy_summary"
             android:title="@string/http_proxy_title"
             android:defaultValue="false" />
 
-    </PreferenceCategory>
+    </androidx.preference.PreferenceCategory>
 
-    <PreferenceCategory android:title="DNS">
-        <CheckBoxPreference
+    <androidx.preference.PreferenceCategory android:title="DNS">
+        <androidx.preference.CheckBoxPreference
             android:key="dns_doh"
             android:summary="@string/doh_summary"
             android:title="@string/doh_title"
             android:defaultValue="true" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="dns_doh_hostlist"
             android:summary="@string/dns_doh_hostlist_summary"
             android:title="@string/dns_doh_hostlist_title"
             android:defaultValue="true" />
-        <EditTextPreference
+        <androidx.preference.EditTextPreference
             android:dialogTitle="@string/dns_doh_server_title"
             android:key="dns_doh_server"
             android:summary="@string/dns_doh_server_summary"
@@ -112,26 +126,26 @@
             android:defaultValue="https://cloudflare-dns.com/dns-query" />
 
 
-    </PreferenceCategory>
+    </androidx.preference.PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/hostlist">
-        <CheckBoxPreference
+    <androidx.preference.PreferenceCategory android:title="@string/hostlist">
+        <androidx.preference.CheckBoxPreference
             android:key="hostlist_enable"
             android:summary="@string/hostlist_enable_summary"
             android:title="@string/hostlist_enable_title"
             android:defaultValue="true" />
-        <EditTextPreference
+        <androidx.preference.EditTextPreference
             android:dialogTitle="@string/hostlist_path_title"
             android:key="hostlist_path"
             android:summary="@string/hostlist_path_summary"
             android:title="@string/hostlist_path_title" />
-        <EditTextPreference
+        <androidx.preference.EditTextPreference
             android:dialogTitle="@string/hostlist_source_title"
             android:key="hostlist_source"
             android:summary="@string/hostlist_source_summary"
             android:title="@string/hostlist_source_title"
             android:defaultValue="https://reestr.rublacklist.net/api/v2/domains/json" />
-        <ListPreference
+        <androidx.preference.ListPreference
             android:dialogTitle="@string/hostlist_format_title"
             android:key="hostlist_format"
             android:summary="@string/hostlist_format_summary"
@@ -140,20 +154,20 @@
             android:entries="@array/hostlist_format_names_array"
             android:entryValues="@array/hostlist_format_values_array" />
 
-    </PreferenceCategory>
+    </androidx.preference.PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/other">
-        <EditTextPreference
+    <androidx.preference.PreferenceCategory android:title="@string/other">
+        <androidx.preference.EditTextPreference
             android:dialogTitle="@string/other_socks5_title"
             android:key="other_socks5"
             android:title="@string/other_socks5_title"
             android:defaultValue="address:port" />
-        <EditTextPreference
+        <androidx.preference.EditTextPreference
             android:dialogTitle="@string/other_http_proxy_title"
             android:key="other_http_proxy"
             android:title="@string/other_http_proxy_title"
             android:defaultValue="address:port" />
-        <EditTextPreference
+        <androidx.preference.EditTextPreference
             android:dialogTitle="@string/other_bind_port_title"
             android:key="other_bind_port"
             android:summary="@string/other_bind_port_summary"
@@ -161,22 +175,22 @@
             android:inputType="number"
             android:maxLength="5"
             android:defaultValue="8080" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="other_vpn_setting"
             android:summary="@string/other_proxy_vpn_summary"
             android:title="@string/other_proxy_vpn_title"
             android:defaultValue="true" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="other_proxy_setting"
             android:summary="@string/other_proxy_setting_summary"
             android:title="@string/other_proxy_setting_title"
             android:defaultValue="false" />
-        <CheckBoxPreference
+        <androidx.preference.CheckBoxPreference
             android:key="other_start_on_boot"
             android:summary="@string/other_start_on_boot_summary"
             android:title="@string/other_start_on_boot_title"
             android:defaultValue="true" />
 
-    </PreferenceCategory>
+    </androidx.preference.PreferenceCategory>
 
-</PreferenceScreen>
+</androidx.preference.PreferenceScreen>
