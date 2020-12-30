@@ -330,6 +330,8 @@ int generate_ssl_cert(std::string sni, struct GeneratedCA & generatedCa)
 
     int ret = generate_signed_key_pair(ca_key, ca_crt, &key, &crt, sni);
     if (!ret) {
+        EVP_PKEY_free(ca_key);
+        X509_free(ca_crt);
         log_error(log_tag.c_str(), "Failed to generate key pair!");
         return -1;
     }

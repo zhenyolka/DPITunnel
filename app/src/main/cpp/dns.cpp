@@ -24,6 +24,7 @@ int resolve_host_over_doh(std::string host, std::string & ip)
     jmethodID utils_make_doh_request = jni_env->GetStaticMethodID(utils_class, "makeDOHRequest", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
     if(utils_make_doh_request == NULL)
     {
+        javaVm->DetachCurrentThread();
         log_error(log_tag.c_str(), "Failed to find makeDOHRequest method");
         return -1;
     }
@@ -35,11 +36,19 @@ int resolve_host_over_doh(std::string host, std::string & ip)
     std::string doh_server;
     std::istringstream stream(settings.dns.dns_doh_servers);
     bool isOK = false;
+    jobject response_string_object;
     while (std::getline(stream, doh_server, delimiter))
     {
         // Call method
-        jstring response_string_object = (jstring) jni_env->CallStaticObjectMethod(utils_class, utils_make_doh_request, jni_env->NewStringUTF(doh_server.c_str()), jni_env->NewStringUTF(host.c_str()));
-        response_string = jni_env->GetStringUTFChars(response_string_object, 0);
+        jobject doh_server_jstring = jni_env->NewStringUTF(doh_server.c_str());
+        jobject host_jstring = jni_env->NewStringUTF(host.c_str());
+        response_string_object = (jstring) jni_env->CallStaticObjectMethod(utils_class, utils_make_doh_request, (jstring) doh_server_jstring, (jstring) host_jstring);
+        response_string = jni_env->GetStringUTFChars((jstring) response_string_object, 0);
+
+        // Release doh_server and host strings
+        jni_env->DeleteLocalRef(doh_server_jstring);
+        jni_env->DeleteLocalRef(host_jstring);
+
         if(response_string.empty())
         {
             log_error(log_tag.c_str(), "Failed to make request to DoH server. Trying again...");
@@ -47,7 +56,13 @@ int resolve_host_over_doh(std::string host, std::string & ip)
             isOK = true;
             break;
         }
+
+        // Release result string
+        jni_env->DeleteLocalRef(response_string_object);
     }
+
+    // Release result string
+    jni_env->DeleteLocalRef(response_string_object);
 
     // Detach thread
     javaVm->DetachCurrentThread();
@@ -63,7 +78,7 @@ int resolve_host_over_doh(std::string host, std::string & ip)
     return 0;
 }
 
-int resolve_host_over_dns(std::string host, std::string & ip)
+int resolve_host_over_dns(const std::string& host, std::string & ip)
 {
     std::string log_tag = "CPP/resolve_host_over_dns";
 
@@ -90,15 +105,21 @@ int resolve_host_over_dns(std::string host, std::string & ip)
 
             size_t first_zero_char = ip.find(' ');
             ip = ip.substr(0, first_zero_char);
+
+            // Free memory
+            freeaddrinfo(res);
             return 0;
         }
         res = res->ai_next;
     }
 
+    // Free memory
+    freeaddrinfo(res);
+
     return -1;
 }
 
-int resolve_host(std::string host, std::string & ip)
+int resolve_host(const std::string& host, std::string & ip)
 {
     if (host.empty())
         return -1;
@@ -148,16 +169,24 @@ int reverse_resolve_host(std::string & host)
         }
 
         // Call Java method
-        jstring response_string_object = (jstring) jni_env->CallStaticObjectMethod(localdnsserver_class, localdnsserver_get_hostname, jni_env->NewStringUTF(host.c_str()));
-        std::string buffer = jni_env->GetStringUTFChars(response_string_object, 0);
+        jobject host_jstring = jni_env->NewStringUTF(host.c_str());
+        jobject response_string_object = (jstring) jni_env->CallStaticObjectMethod(localdnsserver_class, localdnsserver_get_hostname, (jstring) host_jstring);
+        std::string buffer = jni_env->GetStringUTFChars((jstring) response_string_object, 0);
+
+        jni_env->DeleteLocalRef(host_jstring);
+
         if(buffer.empty())
         {
+            jni_env->DeleteLocalRef(response_string_object);
             javaVm->DetachCurrentThread();
             log_error(log_tag.c_str(), "Failed to find hostname to ip");
             return -1;
         }
 
         host = buffer;
+
+        // Release string
+        jni_env->DeleteLocalRef(response_string_object);
 
         // Detach thread
         javaVm->DetachCurrentThread();

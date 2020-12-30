@@ -253,6 +253,7 @@ void resolve_host_with_local_dns_server(const struct arguments *args, struct ng_
 
     // Check received data
     if(recvCnt <= 0) {
+        free(buf);
         log_error(log_tag, "Failed to receive data from local DNS server");
         return;
     }
@@ -265,6 +266,9 @@ void resolve_host_with_local_dns_server(const struct arguments *args, struct ng_
         if (ntohs(cur->udp.dest) == 53)
             cur->udp.state = UDP_FINISHING;
     }
+
+    // Free memory
+    free(buf);
 }
 
 jboolean handle_udp(const struct arguments *args,

@@ -99,6 +99,7 @@ void proxy_https(int client_socket, std::string host, int port)
             close(remote_server_socket);
             SSL_CTX_free(client_context);
 
+			SSL_CTX_free(server_server_context);
             SSL_shutdown(server_client_context);
             shutdown(client_socket, SHUT_RDWR);
             close(client_socket);
@@ -219,6 +220,7 @@ void proxy_https(int client_socket, std::string host, int port)
 		close(remote_server_socket);
 		SSL_CTX_free(client_context);
 
+		SSL_CTX_free(server_server_context);
 		SSL_shutdown(server_client_context);
 		shutdown(client_socket, SHUT_RDWR);
 		close(client_socket);
@@ -415,6 +417,7 @@ extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(J
 	}
 	// Store globally
 	localdnsserver_class = (jclass) env->NewGlobalRef(temp);
+	env->DeleteLocalRef(temp);
 
 	// Find Utils class
 	temp = env->FindClass("ru/evgeniy/dpitunnel/Utils");
@@ -425,6 +428,7 @@ extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(J
 	}
 	// Store globally
 	utils_class = (jclass) env->NewGlobalRef(temp);
+	env->DeleteLocalRef(temp);
 
     // Find SharedPreferences
     jclass prefs_class = env->FindClass("android/content/SharedPreferences");
@@ -451,51 +455,146 @@ extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(J
     }
 
     // Fill settings
-    jstring string_object;
-    settings.https.is_use_split = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("https_split"), false);
-    string_object = (jstring) env->CallObjectMethod(prefs_object, prefs_getString, env->NewStringUTF("https_split_position"), NULL);
-    settings.https.split_position = (unsigned int) atoi(env->GetStringUTFChars(string_object, 0));
-    settings.https.is_use_socks5 = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("https_socks5"), false);
-    settings.https.is_use_http_proxy = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("https_http_proxy"), false);
+    jobject string_object;
+    jobject string_object1;
 
-    settings.sni.is_use_sni_replace = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("sni_enable"), false);
-    string_object = (jstring) env->CallObjectMethod(prefs_object, prefs_getString, env->NewStringUTF("sni_spell"), NULL);
-    settings.sni.sni_spell = env->GetStringUTFChars(string_object, 0);
+    // HTTPS options
+    string_object1 = env->NewStringUTF("https_split");
+    settings.https.is_use_split = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
 
-    settings.http.is_use_split = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("http_split"), false);
-    string_object = (jstring) env->CallObjectMethod(prefs_object, prefs_getString, env->NewStringUTF("http_split_position"), NULL);
-    settings.http.split_position = (unsigned int) atoi(env->GetStringUTFChars(string_object, 0));
-    settings.http.is_change_host_header = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("http_header_switch"), false);
-    string_object = (jstring) env->CallObjectMethod(prefs_object, prefs_getString, env->NewStringUTF("http_header_spell"), NULL);
-    settings.http.host_header = env->GetStringUTFChars(string_object, 0);
-    settings.http.is_add_dot_after_host = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("http_dot"), false);
-    settings.http.is_add_tab_after_host = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("http_tab"), false);
-    settings.http.is_remove_space_after_host = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("http_space_host"), false);
-    settings.http.is_add_space_after_method = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("http_space_method"), false);
-    settings.http.is_add_newline_before_method = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("http_newline_method"), false);
-    settings.http.is_use_unix_newline = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("http_unix_newline"), false);
-    settings.http.is_use_socks5 = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("http_socks5"), false);
-    settings.http.is_use_http_proxy = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("http_http_proxy"), false);
+    string_object1 = env->NewStringUTF("https_split_position");
+    string_object = env->CallObjectMethod(prefs_object, prefs_getString, (jstring) string_object1, NULL);
+    settings.https.split_position = (unsigned int) atoi(env->GetStringUTFChars((jstring) string_object, 0));
+    env->DeleteLocalRef(string_object1);
+    env->DeleteLocalRef(string_object);
 
-    settings.dns.is_use_doh = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("dns_doh"), false);
-    settings.dns.is_use_doh_only_for_site_in_hostlist = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("dns_doh_hostlist"), false);
-    string_object = (jstring) env->CallObjectMethod(prefs_object, prefs_getString, env->NewStringUTF("dns_doh_server"), NULL);
-    settings.dns.dns_doh_servers = env->GetStringUTFChars(string_object, 0);
+    string_object1 = env->NewStringUTF("https_socks5");
+    settings.https.is_use_socks5 = env->CallBooleanMethod(prefs_object, prefs_getBool, string_object1, false);
+    env->DeleteLocalRef(string_object1);
 
-    settings.hostlist.is_use_hostlist = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("hostlist_enable"), false);
-    string_object = (jstring) env->CallObjectMethod(prefs_object, prefs_getString, env->NewStringUTF("hostlist_path"), NULL);
-    settings.hostlist.hostlist_path = env->GetStringUTFChars(string_object, 0);
-	string_object = (jstring) env->CallObjectMethod(prefs_object, prefs_getString, env->NewStringUTF("hostlist_format"), NULL);
-	settings.hostlist.hostlist_format = env->GetStringUTFChars(string_object, 0);
+    string_object1 = env->NewStringUTF("https_http_proxy");
+    settings.https.is_use_http_proxy = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
 
-    string_object = (jstring) env->CallObjectMethod(prefs_object, prefs_getString, env->NewStringUTF("other_socks5"), NULL);
-    settings.other.socks5_server = env->GetStringUTFChars(string_object, 0);
-    string_object = (jstring) env->CallObjectMethod(prefs_object, prefs_getString, env->NewStringUTF("other_http_proxy"), NULL);
-    settings.other.http_proxy_server = env->GetStringUTFChars(string_object, 0);
-    string_object = (jstring) env->CallObjectMethod(prefs_object, prefs_getString, env->NewStringUTF("other_bind_port"), NULL);
-    settings.other.bind_port = atoi(env->GetStringUTFChars(string_object, 0));
+    // SNI options
+    string_object1 = env->NewStringUTF("sni_enable");
+    settings.sni.is_use_sni_replace = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
 
-    settings.other.is_use_vpn = env->CallBooleanMethod(prefs_object, prefs_getBool, env->NewStringUTF("other_vpn_setting"), false);
+    string_object1 =  env->NewStringUTF("sni_spell");
+    string_object = env->CallObjectMethod(prefs_object, prefs_getString, (jstring) string_object1, NULL);
+    settings.sni.sni_spell = env->GetStringUTFChars((jstring) string_object, 0);
+    env->DeleteLocalRef(string_object1);
+    env->DeleteLocalRef(string_object);
+
+    // HTTP options
+    string_object1 = env->NewStringUTF("http_split");
+    settings.http.is_use_split = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
+
+    string_object1 = env->NewStringUTF("http_split_position");
+    string_object = env->CallObjectMethod(prefs_object, prefs_getString, string_object1, NULL);
+    settings.http.split_position = (unsigned int) atoi(env->GetStringUTFChars((jstring) string_object, 0));
+    env->DeleteLocalRef(string_object1);
+    env->DeleteLocalRef(string_object);
+
+    string_object1 = env->NewStringUTF("http_header_switch");
+    settings.http.is_change_host_header = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
+
+    string_object1 = env->NewStringUTF("http_header_spell");
+    string_object = env->CallObjectMethod(prefs_object, prefs_getString, (jstring) string_object1, NULL);
+    settings.http.host_header = env->GetStringUTFChars((jstring) string_object, 0);
+    env->DeleteLocalRef(string_object1);
+    env->DeleteLocalRef(string_object);
+
+    string_object1 = env->NewStringUTF("http_dot");
+    settings.http.is_add_dot_after_host = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
+
+    string_object1 = env->NewStringUTF("http_tab");
+    settings.http.is_add_tab_after_host = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
+
+    string_object1 = env->NewStringUTF("http_space_host");
+    settings.http.is_remove_space_after_host = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
+
+    string_object1 = env->NewStringUTF("http_space_method");
+    settings.http.is_add_space_after_method = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
+
+    string_object1 = env->NewStringUTF("http_newline_method");
+    settings.http.is_add_newline_before_method = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
+
+    string_object1 = env->NewStringUTF("http_unix_newline");
+    settings.http.is_use_unix_newline = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
+
+    string_object1 = env->NewStringUTF("http_socks5");
+    settings.http.is_use_socks5 = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
+
+    string_object1 = env->NewStringUTF("http_http_proxy");
+    settings.http.is_use_http_proxy = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
+
+    // DoH options
+    string_object1 = env->NewStringUTF("dns_doh");
+    settings.dns.is_use_doh = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
+
+    string_object1 = env->NewStringUTF("dns_doh_hostlist");
+    settings.dns.is_use_doh_only_for_site_in_hostlist = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
+
+    string_object1 = env->NewStringUTF("dns_doh_server");
+    string_object = env->CallObjectMethod(prefs_object, prefs_getString, (jstring) string_object1, NULL);
+    settings.dns.dns_doh_servers = env->GetStringUTFChars((jstring) string_object, 0);
+    env->DeleteLocalRef(string_object1);
+    env->DeleteLocalRef(string_object);
+
+    // Hostlist options
+    string_object1 = env->NewStringUTF("hostlist_enable");
+    settings.hostlist.is_use_hostlist = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
+
+    string_object1 = env->NewStringUTF("hostlist_path");
+    string_object = env->CallObjectMethod(prefs_object, prefs_getString, (jstring) string_object1, NULL);
+    settings.hostlist.hostlist_path = env->GetStringUTFChars((jstring) string_object, 0);
+    env->DeleteLocalRef(string_object1);
+    env->DeleteLocalRef(string_object);
+
+    string_object1 = env->NewStringUTF("hostlist_format");
+	string_object = env->CallObjectMethod(prefs_object, prefs_getString, (jstring) string_object1, NULL);
+	settings.hostlist.hostlist_format = env->GetStringUTFChars((jstring) string_object, 0);
+    env->DeleteLocalRef(string_object1);
+    env->DeleteLocalRef(string_object);
+
+    // Other options
+    string_object1 = env->NewStringUTF("other_socks5");
+    string_object = env->CallObjectMethod(prefs_object, prefs_getString, (jstring) string_object1, NULL);
+    settings.other.socks5_server = env->GetStringUTFChars((jstring) string_object, 0);
+    env->DeleteLocalRef(string_object1);
+    env->DeleteLocalRef(string_object);
+
+    string_object1 = env->NewStringUTF("other_http_proxy");
+    string_object = env->CallObjectMethod(prefs_object, prefs_getString, (jstring) string_object1, NULL);
+    settings.other.http_proxy_server = env->GetStringUTFChars((jstring) string_object, 0);
+    env->DeleteLocalRef(string_object1);
+    env->DeleteLocalRef(string_object);
+
+    string_object1 = env->NewStringUTF("other_bind_port");
+    string_object = env->CallObjectMethod(prefs_object, prefs_getString, (jstring) string_object1, NULL);
+    settings.other.bind_port = atoi(env->GetStringUTFChars((jstring) string_object, 0));
+    env->DeleteLocalRef(string_object1);
+    env->DeleteLocalRef(string_object);
+
+    string_object1 = env->NewStringUTF("other_vpn_setting");
+    settings.other.is_use_vpn = env->CallBooleanMethod(prefs_object, prefs_getBool, (jstring) string_object1, false);
+    env->DeleteLocalRef(string_object1);
 
     settings.app_files_dir = env->GetStringUTFChars(app_files_path, 0);
 
