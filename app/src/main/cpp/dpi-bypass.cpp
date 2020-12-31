@@ -420,7 +420,7 @@ extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_service_NativeServic
 	env->DeleteLocalRef(temp);
 
 	// Find Utils class
-	temp = env->FindClass("ru/evgeniy/dpitunnel/Utils");
+	temp = env->FindClass("ru/evgeniy/dpitunnel/util/Utils");
 	if(temp == NULL)
 	{
 		log_error(log_tag.c_str(), "Failed to find Utils class");
