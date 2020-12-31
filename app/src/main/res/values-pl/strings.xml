@@ -61,4 +61,6 @@
     <string name="sni_summary">Zmienia pole SNI w żądaniach HTTPS ClientHello</string>
     <string name="sni_spell_title">Pisanie SNI</string>
     <string name="sni_spell_summary">SNI zostanie zastąpiony przez tę linię. Możesz użyć ${SNI}, aby wstawić oryginalny SNI</string>
+    <string name="author_is">Autorem tego programu jest</string>
+    <string name="github_link">DPITunnel repozytorium na <a href="https://github.com/zhenyolka/DPITunnel">GitHub</a></string>
 </resources>

@@ -62,4 +62,6 @@
     <string name="sni_summary">Изменяет SNI поле в HTTPS ClientHello запросах</string>
     <string name="sni_spell_title">Написание SNI</string>
     <string name="sni_spell_summary">SNI будет заменено этой строки. Можно использовать ${SNI} для вставки исходного SNI</string>
+    <string name="author_is">Автор этой программы</string>
+    <string name="github_link">Репозиторий DPITunnel на <a href="https://github.com/zhenyolka/DPITunnel">GitHub</a></string>
 </resources>

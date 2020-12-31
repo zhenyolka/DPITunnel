@@ -395,7 +395,7 @@ void process_client(int client_socket)
 	}
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(JNIEnv* env, jobject obj, jobject prefs_object, jstring app_files_path)
+extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_service_NativeService_init(JNIEnv* env, jobject obj, jobject prefs_object, jstring app_files_path)
 {
     std::string log_tag = "CPP/init";
 
@@ -409,7 +409,7 @@ extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(J
 	jclass temp;
 
 	// Find LocalDNSServer class
-	temp = env->FindClass("ru/evgeniy/dpitunnel/LocalDNSServer");
+	temp = env->FindClass("ru/evgeniy/dpitunnel/service/LocalDNSServer");
 	if(temp == NULL)
 	{
 		log_error(log_tag.c_str(), "Failed to find LocalDNSServer class");
@@ -646,7 +646,7 @@ extern "C" JNIEXPORT jint JNICALL Java_ru_evgeniy_dpitunnel_NativeService_init(J
 	return 0;
 }
 
-extern "C" JNIEXPORT void Java_ru_evgeniy_dpitunnel_NativeService_acceptClientCycle(JNIEnv* env, jobject obj)
+extern "C" JNIEXPORT void Java_ru_evgeniy_dpitunnel_service_NativeService_acceptClientCycle(JNIEnv* env, jobject obj)
 {
     std::string log_tag = "CPP/acceptClientCycle";
 
@@ -668,7 +668,7 @@ extern "C" JNIEXPORT void Java_ru_evgeniy_dpitunnel_NativeService_acceptClientCy
     }
 }
 
-extern "C" JNIEXPORT void Java_ru_evgeniy_dpitunnel_NativeService_deInit(JNIEnv* env, jobject obj)
+extern "C" JNIEXPORT void Java_ru_evgeniy_dpitunnel_service_NativeService_deInit(JNIEnv* env, jobject obj)
 {
     std::string log_tag = "CPP/deInit";
 

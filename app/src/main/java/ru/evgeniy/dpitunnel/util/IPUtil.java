@@ -1,4 +1,4 @@
-package ru.evgeniy.dpitunnel;
+package ru.evgeniy.dpitunnel.util;
 
 import android.util.Log;
 

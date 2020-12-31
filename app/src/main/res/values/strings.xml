@@ -65,4 +65,7 @@
     <string name="sni_summary">Replace SNI field in HTTPS ClientHello request</string>
     <string name="sni_spell_title">SNI spell</string>
     <string name="sni_spell_summary">SNI will be replaced by this line. You can use ${SNI} to insert the original SNI</string>
+    <string name="author_is">The author of this program is</string>
+    <string name="zhenyolka" translatable="false">zhenyolka</string>
+    <string name="github_link">DPITunnel repository on <a href="https://github.com/zhenyolka/DPITunnel">GitHub</a></string>
 </resources>

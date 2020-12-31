@@ -1,4 +1,4 @@
-package ru.evgeniy.dpitunnel;
+package ru.evgeniy.dpitunnel.util;
 
 import android.util.Base64;
 import android.util.Log;
@@ -18,6 +18,8 @@ import java.net.URL;
 import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
+
+import ru.evgeniy.dpitunnel.NoSSLv3SocketFactory;
 
 public class Utils {
 

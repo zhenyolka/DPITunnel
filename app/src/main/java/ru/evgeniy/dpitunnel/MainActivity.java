@@ -14,6 +14,9 @@ import android.os.AsyncTask;
 import android.os.Build;
 import androidx.preference.PreferenceManager;
 import androidx.appcompat.app.AppCompatActivity;
+import ru.evgeniy.dpitunnel.service.NativeService;
+import ru.evgeniy.dpitunnel.service.Tun2HttpVpnService;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;

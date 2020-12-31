@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import androidx.collection.ArrayMap;
 import androidx.appcompat.app.AppCompatActivity;
+import ru.evgeniy.dpitunnel.service.NativeService;
+
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -52,34 +54,26 @@ public class BrowserActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.browser_progress_bar);
 
         // Initialize buttons
-        browserBackButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        browserBackButton.setOnClickListener(v -> finish());
 
         // Initialize edittext
-        browserEditText.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+        browserEditText.setOnKeyListener((v, keyCode, event) -> {
+            if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
 
-                    // Check if input string is url
-                    String urlPattern = "https?://(www.)?[-a-zA-Z0-9@:%._+~#=]{1,256}.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)";
-                    if(isStringMatch(browserEditText.getText().toString(), urlPattern)) {
-                        browserWebview.loadUrl(browserEditText.getText().toString());
-                    } else {
-                        String url = "https://searx.info/?q=" + browserEditText.getText().toString().replace(" ", "+");
-                        browserWebview.loadUrl(url);
-                        browserEditText.setText(url);
-                    }
-
-                    return true;
+                // Check if input string is url
+                String urlPattern = "https?://(www.)?[-a-zA-Z0-9@:%._+~#=]{1,256}.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)";
+                if(isStringMatch(browserEditText.getText().toString(), urlPattern)) {
+                    browserWebview.loadUrl(browserEditText.getText().toString());
+                } else {
+                    String url = "https://searx.info/?q=" + browserEditText.getText().toString().replace(" ", "+");
+                    browserWebview.loadUrl(url);
+                    browserEditText.setText(url);
                 }
 
-                return false;
+                return true;
             }
+
+            return false;
         });
 
         // Set webview client

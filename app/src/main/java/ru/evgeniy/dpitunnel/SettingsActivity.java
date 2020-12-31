@@ -1,13 +1,13 @@
 package ru.evgeniy.dpitunnel;
 
+import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
-import android.view.View;
+import ru.evgeniy.dpitunnel.fragment.SettingsFragment;
+
 import android.widget.ImageButton;
 
 public class SettingsActivity extends AppCompatActivity {
-
-    private ImageButton settingsBackButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,10 +18,13 @@ public class SettingsActivity extends AppCompatActivity {
         setTheme(R.style.SettingsFragmentStyle);
 
         // Find layout elements
-        settingsBackButton = findViewById(R.id.settings_back_button);
+        ImageButton settingsBackButton = findViewById(R.id.settings_back_button);
+        ImageButton settingsAboutButton = findViewById(R.id.settings_about_button);
 
         // Set listeners
         settingsBackButton.setOnClickListener(v -> finish());
+        settingsAboutButton.setOnClickListener(v -> startActivity(
+                new Intent(SettingsActivity.this, AboutActivity.class)));
 
         // Load settings fragment
         getSupportFragmentManager()

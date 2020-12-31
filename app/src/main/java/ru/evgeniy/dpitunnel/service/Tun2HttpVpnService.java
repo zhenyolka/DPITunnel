@@ -1,11 +1,9 @@
-package ru.evgeniy.dpitunnel;
+package ru.evgeniy.dpitunnel.service;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.VpnService;
 import android.os.Binder;
 import android.os.Build;
@@ -16,28 +14,11 @@ import android.os.PowerManager;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
-import android.util.Base64;
 import android.util.Log;
 
-import org.xbill.DNS.Message;
-import org.xbill.DNS.RRset;
-import org.xbill.DNS.Record;
-import org.xbill.DNS.Section;
-import org.xbill.DNS.Type;
-
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.Proxy;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
-import javax.net.ssl.HttpsURLConnection;
+import ru.evgeniy.dpitunnel.R;
 
 public class Tun2HttpVpnService extends VpnService {
     private LocalDNSServer localDNSServer;

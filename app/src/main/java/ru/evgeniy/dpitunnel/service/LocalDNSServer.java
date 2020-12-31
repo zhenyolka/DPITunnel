@@ -1,4 +1,4 @@
-package ru.evgeniy.dpitunnel;
+package ru.evgeniy.dpitunnel.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
+
+import ru.evgeniy.dpitunnel.NoSSLv3SocketFactory;
 
 public class LocalDNSServer extends Thread {
 

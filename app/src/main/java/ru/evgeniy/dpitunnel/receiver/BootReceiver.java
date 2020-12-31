@@ -1,10 +1,12 @@
-package ru.evgeniy.dpitunnel;
+package ru.evgeniy.dpitunnel.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+
+import ru.evgeniy.dpitunnel.MainActivity;
 
 public class BootReceiver extends BroadcastReceiver {
 

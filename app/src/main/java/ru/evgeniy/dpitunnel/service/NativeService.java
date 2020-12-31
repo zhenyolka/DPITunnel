@@ -1,4 +1,4 @@
-package ru.evgeniy.dpitunnel;
+package ru.evgeniy.dpitunnel.service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -11,6 +11,9 @@ import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import androidx.core.app.NotificationCompat;
+import ru.evgeniy.dpitunnel.MainActivity;
+import ru.evgeniy.dpitunnel.R;
+
 import android.util.Log;
 
 import java.io.DataOutputStream;
