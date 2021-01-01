@@ -66,10 +66,18 @@ public class MainActivity extends AppCompatActivity {
             unpackAssets();
             updateHostlist();
 
-            // mark first time has ran.
+            // mark first time has ran
+            // save some settings
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean("firstTimeFlag", true);
             editor.putString("hostlist_path", getFilesDir() + "/hostlist.txt");
+            // enable hostlist by default if user from Russia
+            if(getResources().getConfiguration()
+                    .locale.getDisplayCountry()
+                    .toLowerCase()
+                    .equals("россия"))
+                editor.putBoolean("hostlist_enable", true);
+
             editor.commit();
 
             // start teach activity

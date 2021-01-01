@@ -64,8 +64,8 @@
     <string name="author_is">Autorem tego programu jest</string>
     <string name="github_link">DPITunnel repozytorium na <a href="https://github.com/zhenyolka/DPITunnel">GitHub</a></string>
     <string name="open_tutorial_again">ponownie otwórz samouczek</string>
-    <string name="about_dpitunnel">DPI Tunnel to aplikacja, która modyfikuje ruch w celu ominięcia DPI i zapewnia swobodny dostęp do informacji.\\nP.S. Proszę, nie pomijaj tego intro.</string>
-    <string name="root_slide_text">DPI Tunnel może działać bez praw roota przy użyciu VpnService API, ale używając praw root, poprawia stabilność i wydajność. Jeśli masz prawa roota, udziel im.</string>
+    <string name="about_dpitunnel">DPI Tunnel to aplikacja, która modyfikuje ruch w celu ominięcia DPI i zapewnia swobodny dostęp do informacji.\nP.S. Proszę, nie pomijaj tego intro.</string>
+    <string name="root_slide_text">DPI Tunnel może działać bez praw roota przy użyciu VpnService API, ale korzystając z praw root, można poprawić stabilność i wydajność. Jeśli masz prawa roota, udziel im.</string>
     <string name="grant_root_rights">Przyznać prawa roota</string>
     <string name="grant_root_rights_fail">Wystąpił błąd podczas pobierania praw roota</string>
     <string name="grant_root_rights_success">Prawa roota zostały pomyślnie uzyskane</string>

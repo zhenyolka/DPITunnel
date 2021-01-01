@@ -133,7 +133,7 @@
             android:key="hostlist_enable"
             android:summary="@string/hostlist_enable_summary"
             android:title="@string/hostlist_enable_title"
-            android:defaultValue="true" />
+            android:defaultValue="false" />
         <androidx.preference.EditTextPreference
             android:dialogTitle="@string/hostlist_path_title"
             android:key="hostlist_path"
