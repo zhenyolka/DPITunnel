@@ -45,9 +45,23 @@
         android:fontFamily="@font/samsungone"
         android:text="@string/github_link"
         android:textColor="@color/textColor"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/tutorial_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/author" />
+
+    <Button
+        android:id="@+id/tutorial_button"
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/samsungone"
+        android:textColor="@color/textColor"
+        android:text="@string/open_tutorial_again"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/github_link" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

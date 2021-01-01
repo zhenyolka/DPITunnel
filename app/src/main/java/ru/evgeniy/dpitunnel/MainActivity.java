@@ -71,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean("firstTimeFlag", true);
             editor.putString("hostlist_path", getFilesDir() + "/hostlist.txt");
             editor.commit();
+
+            // start teach activity
+            startActivity(new Intent(this, TutorialActivity.class));
         }
 
         // Check is activity started from BootReceiver

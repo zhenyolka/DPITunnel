@@ -6,9 +6,10 @@ import android.animation.Animator;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
+import android.content.Intent;
 import android.os.Bundle;
-import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -17,6 +18,7 @@ public class AboutActivity extends AppCompatActivity {
     private ImageButton aboutBackButton;
     private TextView authorName;
     private TextView githubLink;
+    private Button tutorialButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,9 +29,12 @@ public class AboutActivity extends AppCompatActivity {
         aboutBackButton = findViewById(R.id.about_back_button);
         authorName = findViewById(R.id.author);
         githubLink = findViewById(R.id.github_link);
+        tutorialButton = findViewById(R.id.tutorial_button);
 
         // Set listeners
         aboutBackButton.setOnClickListener(v -> finish());
+        tutorialButton.setOnClickListener(v -> startActivity(
+                new Intent(AboutActivity.this, TutorialActivity.class)));
 
         // Make link clickable
         githubLink.setMovementMethod(LinkMovementMethod.getInstance());

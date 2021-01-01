@@ -68,4 +68,11 @@
     <string name="author_is">The author of this program is</string>
     <string name="zhenyolka" translatable="false">zhenyolka</string>
     <string name="github_link">DPITunnel repository on <a href="https://github.com/zhenyolka/DPITunnel">GitHub</a></string>
+    <string name="open_tutorial_again">open tutorial again</string>
+    <string name="about_dpitunnel">DPI Tunnel is application that modifies your traffic in order to bypass DPI and give you free access to information.\\nP.S. Please, don\'t skip this intro.</string>
+    <string name="root_slide_text">DPI Tunnel can work without root rights using VpnService API, but using root rights, it improves stability and efficiency. If you have root rights, please grant them.</string>
+    <string name="grant_root_rights">Grant root rights</string>
+    <string name="grant_root_rights_fail">An error occurred while getting root rights</string>
+    <string name="grant_root_rights_success">Root rights are successfully obtained</string>
+    <string name="sni_slide_text">If you want to use the SNI spoofing option, you need to install <a href="https://github.com/zhenyolka/DPITunnel/blob/master/app/src/main/assets/rootCA.crt">this</a> SSL certificate for comfortable work. To do this, download it, open the device settings. Open Security-> Encryption &amp; Credentials-> Install from SD Card. Select the downloaded certificate and install it.\nDon\'t worry about data security as it is processed locally.</string>
 </resources>
