@@ -1,6 +1,6 @@
 DPITunnel is a simple and effective solution against government censorship for Android. It is built on VPN Server, which intercepts traffic and directs it through the http proxy.
 
-DPITunnel for Android is active DPI circumvention utility, that works only on your phone and doesn’t send your traffic to third-party servers, respecting your privacy and do not slowing down your internet connection. It establishes a transparent proxy server on your phone and starts local VPN server, that forwards your traffic into the proxy server, where are DPI circumvention tricks applying.
+DPITunnel for Android is active DPI circumvention utility, that works only on your phone and doesn’t send your traffic to third-party servers, respecting your privacy and do not slowing down your internet connection. It establishes a transparent proxy server on your phone and starts local VPN server, where are DPI circumvention tricks applying.
 
 Setup:
 For android 5 and up (root access don't mater) just press on/off button.

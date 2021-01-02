@@ -12,7 +12,6 @@ class TutorialActivity : AppIntro() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        showStatusBar(true)
         isSkipButtonEnabled = false
 
         // Info slide
