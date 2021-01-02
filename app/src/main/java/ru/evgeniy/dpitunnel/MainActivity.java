@@ -26,6 +26,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 
@@ -35,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -62,23 +65,29 @@ public class MainActivity extends AppCompatActivity {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         if (!prefs.getBoolean("firstTimeFlag", false)) {
-            // do one time tasks
-            unpackAssets();
-            updateHostlist();
-
             // mark first time has ran
             // save some settings
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean("firstTimeFlag", true);
             editor.putString("hostlist_path", getFilesDir() + "/hostlist.txt");
-            // enable hostlist by default if user from Russia
-            if(getResources().getConfiguration()
-                    .locale.getDisplayCountry()
-                    .toLowerCase()
-                    .equals("россия"))
+            // enable hostlist by default and set default source if we have it
+            HashMap<String, List<String>> hostlistSourcesMap = new Gson().fromJson(
+                    getString(R.string.hostlists_sources_map), new TypeToken<HashMap<String, List<String>>>(){}.getType()
+            );
+            String countryCode = getResources().getConfiguration()
+                    .locale.getISO3Country();
+            if(hostlistSourcesMap.containsKey(countryCode))
+            {
                 editor.putBoolean("hostlist_enable", true);
+                editor.putString("hostlist_source", hostlistSourcesMap.get(countryCode).get(0));
+                editor.putString("hostlist_format", hostlistSourcesMap.get(countryCode).get(1));
+            }
 
             editor.commit();
+
+            // do one time tasks
+            unpackAssets();
+            updateHostlist();
 
             // start teach activity
             startActivity(new Intent(this, TutorialActivity.class));

@@ -75,4 +75,5 @@
     <string name="grant_root_rights_fail">An error occurred while getting root rights</string>
     <string name="grant_root_rights_success">Root rights are successfully obtained</string>
     <string name="sni_slide_text">If you want to use the SNI spoofing option, you need to install <a href="https://github.com/zhenyolka/DPITunnel/blob/master/app/src/main/assets/rootCA.crt">this</a> SSL certificate for comfortable work. To do this, download it, open the device settings. Open Security-> Encryption &amp; Credentials-> Install from SD Card. Select the downloaded certificate and install it.\nDon\'t worry about data security as it is processed locally.</string>
+    <string name="hostlists_sources_map" translatable="false">{\"RUS\" : [\"https://reestr.rublacklist.net/api/v2/domains/json\", \"json\"], \"IND\" : [\"https://raw.githubusercontent.com/kush789/How-India-Censors-The-Web-Data/master/potentially_blocked_unique_hostnames.txt\", \"txt\"]}</string>
 </resources>

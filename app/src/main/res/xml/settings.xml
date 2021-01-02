@@ -143,8 +143,7 @@
             android:dialogTitle="@string/hostlist_source_title"
             android:key="hostlist_source"
             android:summary="@string/hostlist_source_summary"
-            android:title="@string/hostlist_source_title"
-            android:defaultValue="https://reestr.rublacklist.net/api/v2/domains/json" />
+            android:title="@string/hostlist_source_title" />
         <androidx.preference.ListPreference
             android:dialogTitle="@string/hostlist_format_title"
             android:key="hostlist_format"
